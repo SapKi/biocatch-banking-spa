@@ -19,7 +19,7 @@ export interface AuthContextValue {
 }
 
 export type Action = 'init' | 'getScore';
-export type ActivityType = 'LOGIN' | 'PAYMENT';
+export type ActivityType = 'LOGIN' | 'PAYMENT' | 'REGISTRATION';
 
 export interface ApiPayload {
   customerId: string;

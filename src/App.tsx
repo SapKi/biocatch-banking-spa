@@ -1,23 +1,10 @@
-/**
- * App — routing and layout shell.
- *
- * Route structure:
- *   /           → Home       (public)
- *   /login      → Login      (public; redirects to /account if already logged in)
- *   /account    → Account    (protected)
- *   /payment    → Payment    (protected)
- *
- * Context changes are handled per-page via useSDKContext() hooks, NOT here.
- * That design keeps each page self-contained — the page itself declares which
- * SDK context it owns, rather than a central router mapping strings to routes.
- */
-
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import SignUp from './pages/SignUp';
 import Account from './pages/Account';
 import Payment from './pages/Payment';
 
@@ -32,6 +19,10 @@ export default function App() {
         <Route
           path="/login"
           element={user ? <Navigate to="/account" replace /> : <Login />}
+        />
+        <Route
+          path="/signup"
+          element={user ? <Navigate to="/account" replace /> : <SignUp />}
         />
         <Route
           path="/account"

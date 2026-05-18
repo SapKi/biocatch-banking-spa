@@ -45,3 +45,7 @@ export function triggerInit(csid: string): Promise<unknown> {
 export function triggerGetScore(csid: string): Promise<unknown> {
   return postAction('getScore', 'PAYMENT', csid);
 }
+
+export function triggerRegister(csid: string): Promise<unknown> {
+  return postAction('init', 'REGISTRATION', csid);
+}

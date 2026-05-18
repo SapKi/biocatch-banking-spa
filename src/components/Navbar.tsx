@@ -26,7 +26,10 @@ export default function Navbar() {
             </button>
           </>
         ) : (
-          <Link to="/login" style={styles.link}>Login</Link>
+          <>
+            <Link to="/login" style={styles.link}>Login</Link>
+            <Link to="/signup" style={styles.signUpBtn}>Sign Up</Link>
+          </>
         )}
       </div>
     </nav>
@@ -64,6 +67,15 @@ const styles = {
   userLabel: {
     color: '#a8c0e0',
     fontSize: '0.9rem',
+  },
+  signUpBtn: {
+    padding: '0.35rem 0.9rem',
+    background: '#1a4db5',
+    color: '#fff',
+    borderRadius: '4px',
+    textDecoration: 'none',
+    fontSize: '0.9rem',
+    fontWeight: 600,
   },
   logoutBtn: {
     background: 'transparent',
