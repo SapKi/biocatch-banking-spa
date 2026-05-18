@@ -1,22 +1,10 @@
-/**
- * Login page.
- *
- * Flow:
- *   1. User submits credentials (simulated — any non-empty input passes).
- *   2. login() in AuthContext generates a fresh CSID and calls setCustomerSessionId.
- *   3. triggerInit() POSTs to the Zapier endpoint with action:"init".
- *   4. On success: markInitDone() enables the getScore call, navigate to /account.
- *   5. On failure: show error — user stays on this screen.
- *
- * getScore is intentionally blocked until initDone === true (enforced in AuthContext).
- */
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSDKContext } from '../hooks/useSDKContext';
 import { triggerInit } from '../services/apiService';
 import StatusBadge from '../components/StatusBadge';
+import { ApiStatus } from '../types';
 
 export default function Login() {
   useSDKContext('login_screen');
@@ -26,28 +14,26 @@ export default function Login() {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [apiStatus, setApiStatus] = useState({ status: 'idle', message: '' });
+  const [apiStatus, setApiStatus] = useState<ApiStatus>({ status: 'idle', message: '' });
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;
 
-    // Step 1: establish session in React context + SDK.
-    // login() is synchronous but returns void — CSID is immediately
-    // written to sessionStorage inside login(), so we read it back here.
     login({ username: username.trim() });
-    const activeCsid = sessionStorage.getItem('csid');
+    // login() writes the CSID to sessionStorage synchronously; read it back here.
+    const activeCsid = sessionStorage.getItem('csid')!;
 
     setApiStatus({ status: 'loading', message: 'Authenticating…' });
 
     try {
-      // Step 2: trigger init API call
       await triggerInit(activeCsid);
       markInitDone();
       setApiStatus({ status: 'success', message: 'Login successful! Redirecting…' });
       setTimeout(() => navigate('/account'), 800);
     } catch (err) {
-      setApiStatus({ status: 'error', message: `Login failed: ${err.message}` });
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setApiStatus({ status: 'error', message: `Login failed: ${message}` });
     }
   }
 

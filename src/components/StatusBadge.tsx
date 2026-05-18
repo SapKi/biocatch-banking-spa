@@ -1,8 +1,6 @@
-/**
- * Shows loading / error / success feedback for async API calls.
- * Reused on Login (init) and Payment (getScore) pages.
- */
-export default function StatusBadge({ status, message }) {
+import { ApiStatus } from '../types';
+
+export default function StatusBadge({ status, message }: ApiStatus) {
   if (!status || status === 'idle') return null;
 
   const map = {

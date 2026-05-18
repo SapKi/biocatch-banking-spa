@@ -1,9 +1,4 @@
-/**
- * Generates a RFC-4122 v4 UUID.
- * Uses the native crypto API (available in all modern browsers and Node 14+).
- * Falls back to a Math.random-based implementation for older environments.
- */
-export function generateUUID() {
+export function generateUUID(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
   }

@@ -1,25 +1,9 @@
-/**
- * Payment page.
- *
- * Flow:
- *   1. User fills recipient, amount, note and submits.
- *   2. triggerGetScore() fires — this is deliberately AFTER init succeeded
- *      (init was called on login; AuthContext stores initDone flag).
- *   3. Loading / success / error states are shown in-page.
- *
- * getScore sequencing note:
- *   The requirement is that getScore only runs after init succeeds.
- *   We enforce this via initDone in AuthContext — if false, the button
- *   shows a warning and the submit is blocked. In a real app this edge
- *   case would not be reachable (login would fail before reaching this page),
- *   but we guard it defensively here for clarity.
- */
-
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSDKContext } from '../hooks/useSDKContext';
 import { triggerGetScore } from '../services/apiService';
 import StatusBadge from '../components/StatusBadge';
+import { ApiStatus } from '../types';
 
 export default function Payment() {
   useSDKContext('payment_screen');
@@ -29,9 +13,9 @@ export default function Payment() {
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount]       = useState('');
   const [note, setNote]           = useState('');
-  const [apiStatus, setApiStatus] = useState({ status: 'idle', message: '' });
+  const [apiStatus, setApiStatus] = useState<ApiStatus>({ status: 'idle', message: '' });
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!recipient.trim() || !amount || parseFloat(amount) <= 0) return;
 
@@ -43,14 +27,17 @@ export default function Payment() {
     setApiStatus({ status: 'loading', message: 'Processing payment…' });
 
     try {
-      const result = await triggerGetScore(csid);
+      // csid is guaranteed non-null here: initDone is only true after a successful login,
+      // which always generates and stores a CSID.
+      const result = await triggerGetScore(csid!);
       setApiStatus({
         status: 'success',
         message: `Payment of $${parseFloat(amount).toFixed(2)} to ${recipient} submitted successfully.`,
       });
       console.log('[Payment] getScore result:', result);
     } catch (err) {
-      setApiStatus({ status: 'error', message: `Payment failed: ${err.message}` });
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setApiStatus({ status: 'error', message: `Payment failed: ${message}` });
     }
   }
 
