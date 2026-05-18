@@ -86,10 +86,14 @@ src/
 │
 ├── utils/
 │   ├── uuid.ts            ← no src/ imports
-│   └── transactionStore.ts  → config · types
+│   ├── error.ts           ← no src/ imports  (getErrorMessage helper)
+│   ├── format.ts          ← no src/ imports  (formatCurrency helper)
+│   ├── storage.ts         ← no src/ imports  (readStorage generic helper)
+│   └── logger.ts          ← no src/ imports
 │
 ├── db/
-│   └── userStore.ts       → config
+│   ├── userStore.ts       → config · utils/storage
+│   └── transactionStore.ts  → config · types · utils/storage · utils/uuid
 │
 ├── services/
 │   ├── httpClient.ts      ← no src/ imports  (raw fetch — knows nothing about BioCatch)
@@ -108,18 +112,19 @@ src/
 │   └── StatusBadge.tsx    → types
 │
 └── pages/
-    ├── Home.tsx           → context/AuthContext · hooks/useSDKContext
+    ├── Home.tsx           → context/AuthContext  (public — no SDK context call)
     ├── Login.tsx          → context/AuthContext · hooks/useSDKContext
     │                         services/apiService · db/userStore
-    │                         components/StatusBadge · types
+    │                         utils/error · components/StatusBadge · types
     ├── SignUp.tsx         → context/AuthContext · hooks/useSDKContext
     │                         services/apiService · db/userStore
-    │                         components/StatusBadge · types
+    │                         utils/error · components/StatusBadge · types
     ├── Account.tsx        → context/AuthContext · hooks/useSDKContext
-    │                         utils/transactionStore · db/userStore
+    │                         db/transactionStore · db/userStore · utils/format
     └── Payment.tsx        → context/AuthContext · hooks/useSDKContext
-                              services/apiService · utils/transactionStore
-                              db/userStore · components/StatusBadge · types
+                              services/apiService · db/transactionStore
+                              db/userStore · utils/error · utils/format
+                              components/StatusBadge · types
 ```
 
 ---
@@ -138,7 +143,7 @@ src/
          ▼              ▼              ▼
 ┌────────────────┐ ┌──────────────┐ ┌───────────────────────────────────┐
 │  apiService.ts │ │ sdkService.ts│ │  db/userStore.ts                  │
-│                │ │              │ │  utils/transactionStore.ts        │
+│                │ │              │ │  db/transactionStore.ts           │
 │  Builds the    │ │  Wraps       │ │                                   │
 │  BioCatch JSON │ │  window.cdApi│ │  Reads/writes localStorage.       │
 │  payload.      │ │  with guards │ │  Owns all persistence logic.      │
@@ -260,7 +265,16 @@ biocatch-banking-spa/
     ├── utils/
     │   ├── uuid.ts                   # generateUUID() — crypto.randomUUID + fallback
     │   ├── logger.ts                 # Coloured console logger — one domain per colour
-    │   └── transactionStore.ts       # getTransactions · addTransaction · clearTransactions
+    │   ├── error.ts                  # getErrorMessage(err) — normalises unknown catch values
+    │   ├── format.ts                 # formatCurrency(amount) — Intl.NumberFormat wrapper
+    │   └── storage.ts                # readStorage<T>(key, fallback) — safe JSON parse
+    │
+    ├── db/
+    │   ├── userStore.ts              # registerUser · loginUser · getBalances · deductFromChecking · removeUser
+    │   └── transactionStore.ts       # getTransactions (auto-migrates) · addTransaction · clearTransactions
+    │
+    ├── styles/
+    │   └── form.module.css           # shared form layout — imported directly by Login & SignUp
     │
     ├── components/
     │   ├── Navbar.tsx                # nav bar, login/logout state, email display
@@ -270,16 +284,14 @@ biocatch-banking-spa/
     │   └── StatusBadge.module.css
     │
     └── pages/
-        ├── Home.tsx                  # landing page, CTA → /login or /account
+        ├── Home.tsx                  # landing page, CTA → /login or /account (no SDK call)
         ├── Home.module.css
         ├── Login.tsx                 # validates DB → startSession → triggerInit → completeAuth
-        ├── Login.module.css
         ├── SignUp.tsx                # registers DB → startSession → triggerRegister → completeAuth
-        ├── SignUp.module.css
         ├── Account.tsx               # reads balances + transactions from DB
         ├── Account.module.css
-        ├── Payment.tsx               # triggerGetScore → deductFromChecking → addTransaction
-        └── Payment.module.css
+        ├── Payment.tsx               # balance check → triggerGetScore → deductFromChecking → addTransaction
+        └── Payment.module.css        # payment-specific additions only (base styles from styles/form.module.css)
 ```
 
 ---
@@ -289,7 +301,7 @@ biocatch-banking-spa/
 Zero magic numbers anywhere else in the codebase.
 
 ```typescript
-API_ENDPOINT             // 'https://hooks.zapier.com/hooks/catch/1888053/bgwofce/'
+API_ENDPOINT             // from VITE_API_ENDPOINT in .env
 API_BRAND                // 'SD'
 API_SOLUTION             // 'ATO'
 API_CUSTOMER_ID          // 'dummy'
@@ -297,6 +309,9 @@ DB_USERS_KEY             // 'bc_users'
 DB_TRANSACTIONS_PREFIX   // 'bc_transactions_'
 INITIAL_CHECKING_BALANCE // 5000.00
 INITIAL_SAVINGS_BALANCE  // 12500.00
+ROUTES                   // { HOME, LOGIN, SIGNUP, ACCOUNT, PAYMENT }
+SCREENS                  // { LOGIN, SIGNUP, ACCOUNT, PAYMENT }
+REDIRECT_DELAY_MS        // 800
 ```
 
 ---
@@ -354,12 +369,13 @@ If the API call fails, `user` stays `null`. The Navbar shows no links. Protected
 
 | Trigger | Call |
 |---------|------|
-| Home mounts | `cdApi.changeContext("home_screen")` |
 | Login mounts | `cdApi.changeContext("login_screen")` |
 | SignUp mounts | `cdApi.changeContext("signup_screen")` |
-| User logs in / signs up | `cdApi.setCustomerSessionId(csid)` |
+| User logs in / signs up | `cdApi.setCustomerSessionId(csid)` then `setCustomerBrand("SD")` |
 | Account mounts | `cdApi.changeContext("account_screen")` |
 | Payment mounts | `cdApi.changeContext("payment_screen")` |
+
+> **Why not Home?** The Home page is public — no session exists yet. Calling `changeContext` before `setCustomerSessionId` would send an un-tagged context event that the SDK cannot associate with any session. SDK calls only begin at the first authenticated screen (Login/SignUp).
 
 ---
 
@@ -516,7 +532,6 @@ Open **DevTools → Console** and follow this sequence:
 
 ```
 [App]      Booting SecureBank SPA
-[App→SDK]  changeContext → home_screen
 [App→SDK]  changeContext → login_screen
 [DB]       User authenticated → user@example.com
 [Auth]     New CSID generated → <uuid>
@@ -564,11 +579,11 @@ Race condition: if the SDK loads inside a component, the first `changeContext` f
 ### 6 — All constants in `config.ts`
 No magic strings or numbers scattered across files. One change to `config.ts` updates the entire app.
 
-### 7 — CSS Modules — one file per component
-Styles are co-located with their component and locally scoped. No class name collisions. Only truly dynamic values (opacity, cursor, amount color) remain as inline styles.
+### 7 — CSS Modules — shared base, scoped additions
+Styles are co-located with their component and locally scoped. `src/styles/form.module.css` defines the shared form layout (page, card, inputs, button). Login and SignUp import it directly. Payment imports the shared base plus its own module for additions. All color and spacing values are CSS variables defined once in `index.css (:root)` — no hardcoded hex values in component files. All interactive states (disabled, focus) are handled by CSS pseudo-selectors, not inline styles.
 
 ### 8 — `localStorage` DB — no backend
-Users and transactions persist across sessions without any server. `bc_users` stores email, hashed password, and balances. `bc_transactions_{email}` stores that user's transaction history. Logout does not wipe the DB — data persists for the next login.
+Users and transactions persist across sessions without any server. `bc_users` stores email, password (plain text — demo only, no real auth), and balances. `bc_transactions_{email}` stores that user's transaction history. Each transaction carries a UUID so React keys are always stable. Logout does not wipe the DB — data persists for the next login.
 
 ### 9 — Context API, not Redux
 Three values (`user`, `csid`, `initDone`), one linear flow. Redux adds boilerplate with no architectural benefit here.
