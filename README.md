@@ -6,51 +6,227 @@ A React + TypeScript SPA that simulates a banking user journey and integrates th
 
 ## Prerequisites
 
-- **Node.js** v18 or higher — [nodejs.org](https://nodejs.org)
-- **npm** v9 or higher (bundled with Node.js)
+You need the following installed on your machine before you can run this project:
 
-Verify your versions:
+| Tool | Minimum version | How to install |
+|------|----------------|----------------|
+| **Node.js** | v18.0.0 | [nodejs.org/en/download](https://nodejs.org/en/download) |
+| **npm** | v9.0.0 | Bundled with Node.js — no separate install needed |
+| **Git** | any recent version | [git-scm.com/downloads](https://git-scm.com/downloads) |
+
+### Verify your environment
+
+Open a terminal and run:
 
 ```bash
-node -v   # should print v18.x.x or higher
-npm -v    # should print 9.x.x or higher
+node -v
+# Expected: v18.x.x or higher (e.g. v20.11.0)
+
+npm -v
+# Expected: 9.x.x or higher (e.g. 10.2.4)
+
+git --version
+# Expected: git version 2.x.x or higher
+```
+
+If `node -v` prints a version below 18, install the latest LTS from [nodejs.org](https://nodejs.org).
+
+---
+
+## Setup & Run — Step by Step
+
+### Step 1 — Clone the repository
+
+```bash
+git clone https://github.com/SapKi/biocatch-banking-spa.git
+```
+
+### Step 2 — Enter the project folder
+
+```bash
+cd biocatch-banking-spa
+```
+
+### Step 3 — Install dependencies
+
+```bash
+npm install
+```
+
+This will install React, React Router, Vite, TypeScript, and ESLint.
+Expected output ends with: `added N packages in Xs`
+
+### Step 4 — Start the development server
+
+```bash
+npm run dev
+```
+
+Expected output:
+
+```
+VITE v8.x.x  ready in xxx ms
+
+➜  Local:   http://localhost:5173/
+➜  Network: use --host to expose
+```
+
+### Step 5 — Open in browser
+
+Navigate to **[http://localhost:5173](http://localhost:5173)**
+
+The app loads immediately. No login credentials are required — any non-empty username and password will work.
+
+---
+
+## All Available Commands
+
+```bash
+npm run dev      # start local development server on http://localhost:5173
+npm run build    # compile TypeScript + bundle for production (output: /dist)
+npm run preview  # serve the /dist folder locally to test the production build
+npm run lint     # run ESLint across all .ts and .tsx files
 ```
 
 ---
 
-## Quick Start
+## Troubleshooting
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/SapKi/biocatch-banking-spa.git
-cd biocatch-banking-spa
-
-# 2. Install dependencies
-npm install
-
-# 3. Start the development server
-npm run dev
-```
-
-Open **http://localhost:5173** in your browser.
-
-### Other commands
-
-```bash
-npm run build    # production build + TypeScript type check
-npm run preview  # preview the production build locally
-npm run lint     # run ESLint
-```
+| Problem | Fix |
+|---------|-----|
+| `npm install` fails with EACCES | Run as administrator, or fix npm permissions |
+| Port 5173 already in use | Stop the other process, or run `npm run dev -- --port 3000` |
+| `node: command not found` | Node.js is not installed or not on PATH — reinstall from nodejs.org |
+| White screen, no console errors | Hard refresh with Ctrl+Shift+R (clears Vite cache) |
+| SDK not loading (`cdApi not available`) | Check DevTools Network for the SDK script request — may be blocked by an ad blocker |
 
 ---
 
 ## User Flow
 
 ```
-Home → Login → Account Overview → Make Payment → Logout
+Home  ──►  Login  ──►  Account Overview  ──►  Make Payment  ──►  Logout
 ```
 
-Any non-empty username and password will log you in (auth is simulated).
+---
+
+## Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  BROWSER                                                                     │
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │  index.html  (SDK bootstrap layer)                                     │  │
+│  │                                                                        │  │
+│  │  <meta name="isHybrid" content="false" />                             │  │
+│  │  <script defer src="https://bcdn-4ff4f23f.we-stats.com/...js" />      │  │
+│  └──────────────────────────────┬─────────────────────────────────────── ┘  │
+│                                 │ registers on load                          │
+│                                 ▼                                            │
+│                          window.cdApi  ◄──────────────────────────────┐     │
+│                                 │                                      │     │
+│                                 │ wrapped by                           │     │
+│  ┌──────────────────────────────▼───────────────────────────────────┐  │     │
+│  │  sdkService.ts                                                    │  │     │
+│  │  setCustomerSessionId(csid)  ──► cdApi.setCustomerSessionId()     ├──┘     │
+│  │  changeContext(screen)       ──► cdApi.changeContext()            │       │
+│  │  setCustomerBrand(brand)     ──► cdApi.setCustomerBrand()         │       │
+│  └──────────────┬───────────────────────────────────────────────────┘       │
+│                 │ called by                                                   │
+│  ┌──────────────▼───────────────────────────────────────────────────────┐   │
+│  │  React Application                                                    │   │
+│  │                                                                       │   │
+│  │  ┌────────────────────────────────────────────────────────────────┐  │   │
+│  │  │  AuthContext  (single source of truth for session state)        │  │   │
+│  │  │                                                                 │  │   │
+│  │  │  user: User | null       ← set on login, cleared on logout      │  │   │
+│  │  │  csid: string | null     ← UUID stored in sessionStorage        │  │   │
+│  │  │  initDone: boolean       ← true only after init API succeeds    │  │   │
+│  │  └────────────────────────────────────────────────────────────────┘  │   │
+│  │                │ consumed by all pages                                │   │
+│  │                │                                                      │   │
+│  │  ┌─────────────▼──────────────────────────────────────────────────┐  │   │
+│  │  │  React Router  (BrowserRouter)                                  │  │   │
+│  │  │                                                                  │  │   │
+│  │  │  /          ──► Home.tsx                                         │  │   │
+│  │  │  /login     ──► Login.tsx        ──► triggerInit(csid)           │  │   │
+│  │  │  /account   ──► [ProtectedRoute] ──► Account.tsx                 │  │   │
+│  │  │  /payment   ──► [ProtectedRoute] ──► Payment.tsx ──► triggerGetScore(csid)│  │
+│  │  │                                                                  │  │   │
+│  │  │  Every page calls: useSDKContext("screen_name")                  │  │   │
+│  │  │                    └──► changeContext() on mount                 │  │   │
+│  │  └──────────────────────────────────┬─────────────────────────────┘  │   │
+│  │                                     │                                 │   │
+│  │  ┌──────────────────────────────────▼─────────────────────────────┐  │   │
+│  │  │  apiService.ts                                                  │  │   │
+│  │  │  triggerInit(csid)      ──► POST { action: "init",     ... }    │  │   │
+│  │  │  triggerGetScore(csid)  ──► POST { action: "getScore", ... }    │  │   │
+│  │  └──────────────────────────────────┬─────────────────────────────┘  │   │
+│  └─────────────────────────────────────┼───────────────────────────────┘   │
+└────────────────────────────────────────┼────────────────────────────────────┘
+                                         │ fetch() POST
+                    ┌────────────────────▼─────────────────────┐
+                    │  External Services                         │
+                    │                                            │
+                    │  ┌─────────────────────────────────────┐  │
+                    │  │  Zapier Webhook                      │  │
+                    │  │  hooks.zapier.com/hooks/catch/...    │  │
+                    │  │  Receives: init / getScore payloads  │  │
+                    │  └─────────────────────────────────────┘  │
+                    │                                            │
+                    │  ┌─────────────────────────────────────┐  │
+                    │  │  BioCatch Cloud                      │  │
+                    │  │  Receives behavioral data from SDK   │  │
+                    │  │  (mouse, keyboard, touch patterns)   │  │
+                    │  └─────────────────────────────────────┘  │
+                    └────────────────────────────────────────────┘
+```
+
+---
+
+## Data Flow — Login & Payment
+
+```
+  User          Login.tsx       AuthContext      sdkService      apiService      Zapier
+   │                │                │                │               │             │
+   │  submit form   │                │                │               │             │
+   │───────────────►│                │                │               │             │
+   │                │  login(user)   │                │               │             │
+   │                │───────────────►│                │               │             │
+   │                │                │ generateUUID() │               │             │
+   │                │                │ sessionStorage │               │             │
+   │                │                │  .setItem(csid)│               │             │
+   │                │                │ setCustomerSessionId(csid)     │             │
+   │                │                │───────────────►│               │             │
+   │                │                │                │ cdApi.setCSID()            │
+   │                │  triggerInit(csid)               │               │             │
+   │                │──────────────────────────────────────────────── ►│             │
+   │                │                │                │  POST action:"init"         │
+   │                │                │                │               │────────────►│
+   │                │                │                │               │◄────────────│
+   │                │  markInitDone()│                │               │  200 OK     │
+   │                │───────────────►│                │               │             │
+   │                │                │ initDone=true  │               │             │
+   │◄───────────────│ navigate(/account)               │               │             │
+   │                │                │                │               │             │
+   │                │                │                │               │             │
+   ╔════════════════╪════════════════╪════════════════╪═══════════════╪═════════════╪═══╗
+   ║  Later: Payment screen          │                │               │             │   ║
+   ╚════════════════╪════════════════╪════════════════╪═══════════════╪═════════════╪═══╝
+   │                │                │                │               │             │
+   │  submit form   │                │                │               │             │
+   │───────────────►│                │                │               │             │
+   │                │ check initDone │                │               │             │
+   │                │───────────────►│ true ✓         │               │             │
+   │                │ triggerGetScore(csid!)           │               │             │
+   │                │──────────────────────────────────────────────── ►│             │
+   │                │                │                │ POST action:"getScore"      │
+   │                │                │                │               │────────────►│
+   │                │                │                │               │◄────────────│
+   │◄───────────────│ show success badge               │               │  200 OK     │
+   │                │                │                │               │             │
+```
 
 ---
 
@@ -64,32 +240,32 @@ biocatch-banking-spa/
 │   ├── main.tsx                # Entry: BrowserRouter + AuthProvider + App
 │   ├── App.tsx                 # Route definitions + layout shell
 │   ├── index.css               # Global CSS reset
-│   ├── types.ts                # Shared interfaces and union types
+│   ├── types.ts                # Shared interfaces: User, ApiStatus, ApiPayload...
 │   ├── global.d.ts             # CdApi interface + Window.cdApi declaration
 │   │
 │   ├── context/
-│   │   └── AuthContext.tsx     # Session state: user, CSID, initDone flag
+│   │   └── AuthContext.tsx     # Session state: user, csid, initDone
 │   │
 │   ├── services/
-│   │   ├── sdkService.ts       # Thin wrapper around window.cdApi
-│   │   └── apiService.ts       # All fetch calls — triggerInit, triggerGetScore
+│   │   ├── sdkService.ts       # Wrapper around window.cdApi
+│   │   └── apiService.ts       # triggerInit() and triggerGetScore()
 │   │
 │   ├── hooks/
-│   │   └── useSDKContext.ts    # Per-page hook: calls changeContext on mount
+│   │   └── useSDKContext.ts    # Calls changeContext() on every page mount
 │   │
 │   ├── utils/
-│   │   └── uuid.ts             # UUID generator (crypto.randomUUID + fallback)
+│   │   └── uuid.ts             # crypto.randomUUID() with Math.random fallback
 │   │
 │   ├── components/
-│   │   ├── Navbar.tsx          # Top nav with logout
-│   │   ├── ProtectedRoute.tsx  # Auth guard — redirects to /login
-│   │   └── StatusBadge.tsx     # Loading / success / error feedback UI
+│   │   ├── Navbar.tsx          # Top navigation bar with logout
+│   │   ├── ProtectedRoute.tsx  # Redirects to /login if not authenticated
+│   │   └── StatusBadge.tsx     # idle / loading / success / error feedback
 │   │
 │   └── pages/
-│       ├── Home.tsx            # Landing page
-│       ├── Login.tsx           # Login form — triggers init API call
+│       ├── Home.tsx            # Public landing page
+│       ├── Login.tsx           # Login form — triggers init API
 │       ├── Account.tsx         # Account overview (protected)
-│       └── Payment.tsx         # Payment form — triggers getScore API call
+│       └── Payment.tsx         # Payment form — triggers getScore API
 ```
 
 ---
@@ -102,51 +278,42 @@ biocatch-banking-spa/
 <script src="https://bcdn-4ff4f23f.we-stats.com/scripts/4ff4f23f/4ff4f23f.js" defer></script>
 ```
 
-Loading the SDK in `<head defer>` guarantees `window.cdApi` exists before the React bundle executes. Lazy-loading inside a component creates a race condition — the first `changeContext` call would fire before `cdApi` is ready.
-
-The `<meta name="isHybrid" content="false">` tag is also required — the SDK reads it on load to choose its web vs. native branch.
+Loading in `<head defer>` guarantees `window.cdApi` exists before the React bundle executes. Lazy-loading inside a component creates a race condition where the first `changeContext` fires before `cdApi` is ready. The `<meta name="isHybrid" content="false">` tag is also required — the SDK reads it on load to choose its web vs. native branch.
 
 ### 2. CSID stored in `sessionStorage`
 
-`sessionStorage` is cleared when the tab closes — correct for a banking session. A new tab = a new session = a new CSID. `localStorage` would persist across tabs and browser restarts, so the same CSID would follow the user across logically separate sessions.
-
-Flow:
-```
-Login  → generateUUID() → sessionStorage.setItem → cdApi.setCustomerSessionId(csid)
-Logout → sessionStorage.removeItem('csid') → initDone reset to false
-Next login → fresh UUID
-```
+`sessionStorage` is cleared when the tab closes — correct for a banking session. A new tab = a new session = a new CSID. `localStorage` would persist the same CSID across tabs and browser restarts, which is wrong for fraud detection.
 
 ### 3. `initDone` gates getScore
 
-`AuthContext` holds an `initDone: boolean` that starts `false`. It is set to `true` only after `triggerInit()` resolves successfully on login. The Payment page reads `initDone` and blocks submission if it is `false` — enforced at the data layer, not just in the UI.
+`AuthContext` holds `initDone: boolean` that starts `false` and is set to `true` only after `triggerInit()` resolves. The Payment page reads it and blocks submission — enforced at the data layer, not just in the UI.
 
 ### 4. SDK context changes are per-page hooks
 
-Each page calls `useSDKContext("screen_name")`. The hook wraps `changeContext` in `useEffect` with an empty dependency array — fires exactly once, on mount. Context changes are tied to React Router's mount/unmount lifecycle. No central route-watcher needed; each page owns its SDK context.
+Each page calls `useSDKContext("screen_name")`. The hook fires `changeContext` once on mount via `useEffect(fn, [])`. No central route-watcher — each page owns its own SDK context declaration.
 
 ### 5. API layer is separated from UI
 
-`apiService.ts` owns the endpoint URL, headers, payload shape, and logging. Pages call named functions (`triggerInit`, `triggerGetScore`) — they never construct `fetch` calls directly. The `Action` and `ActivityType` union types make the allowed values explicit at the call site.
+Pages call named functions (`triggerInit`, `triggerGetScore`). The endpoint URL, headers, payload shape, and logs all live in `apiService.ts`. The `Action` and `ActivityType` union types prevent invalid values at compile time.
 
-### 6. TypeScript with strict mode
+### 6. TypeScript strict mode
 
-All shared contracts live in `src/types.ts`. `window.cdApi` is typed via `global.d.ts` using a `Window` interface augmentation — no `any` casts needed in service code. `strict: true` catches implicit `any`, unchecked null access, and unused variables at compile time.
+Shared contracts in `src/types.ts`. `window.cdApi` typed via `global.d.ts` Window augmentation — no `any` casts. `strict: true` enforces null checks, no implicit any, no unused variables.
 
 ### 7. Context API instead of Redux
 
-The state is a single linear session: unauthenticated → authenticated → init done. Three values total. Redux would add boilerplate with no benefit here.
+Three values, one linear flow. Redux adds boilerplate with no benefit here.
 
 ---
 
-## API Flow
+## API Reference
+
+Both calls POST to: `https://hooks.zapier.com/hooks/catch/1888053/bgwofce/`
 
 | User action  | Function          | `action`     | `activityType` |
 |--------------|-------------------|--------------|----------------|
 | Click Login  | `triggerInit`     | `"init"`     | `"LOGIN"`      |
 | Click Pay    | `triggerGetScore` | `"getScore"` | `"PAYMENT"`    |
-
-Both POST to: `https://hooks.zapier.com/hooks/catch/1888053/bgwofce/`
 
 Example payload:
 ```json
@@ -164,7 +331,7 @@ Example payload:
 
 ---
 
-## SDK Calls Summary
+## SDK Calls per Screen
 
 | Event          | SDK call                                |
 |----------------|-----------------------------------------|
@@ -178,7 +345,7 @@ Example payload:
 
 ## Observability — Browser Console
 
-Open **DevTools → Console**. You will see:
+Open **DevTools → Console**:
 
 ```
 [App]  Booting SecureBank SPA
@@ -195,20 +362,32 @@ Open **DevTools → Console**. You will see:
 [Auth] Session ended — CSID cleared
 ```
 
-To verify the full payload, open **DevTools → Network**, filter by `bgwofce`, and inspect the request body.
+Open **DevTools → Network**, filter by `bgwofce` to inspect the full request/response payload.
 
 ---
 
 ## Screenshots to Capture
 
-1. **Home page** — hero section with "Get Started" button
-2. **Login page** — form with fields filled in
-3. **Login loading state** — "Signing in…" status badge
+1. **Home page** — hero with "Get Started" button
+2. **Login page** — form with credentials filled
+3. **Login loading** — "Signing in…" status badge
 4. **Account page** — account cards + transaction table
-5. **Payment page** — form filled in
+5. **Payment page** — form filled
 6. **Payment success** — green status badge
-7. **DevTools Console** — showing all `[SDK]` and `[API]` log lines
-8. **DevTools Network** — POST to Zapier with full JSON payload visible
+7. **DevTools Console** — all `[SDK]` and `[API]` log lines visible
+8. **DevTools Network** — POST to Zapier with full JSON payload
+
+---
+
+## Demo Video Flow (~3 minutes)
+
+1. Open app → Home → console shows `changeContext → home_screen`
+2. Click "Get Started" → Login → `changeContext → login_screen`
+3. Enter credentials → Sign In → CSID generated, `init` fires, success badge
+4. Redirect to Account → account cards + transactions + console log
+5. Click "Make a Payment" → fill form → Confirm → `getScore` fires + success
+6. Logout → login again → **new CSID** in console (shows fresh session)
+7. DevTools Network → show full `init` payload in request body
 
 ---
 
@@ -225,18 +404,6 @@ feat: add Navbar, ProtectedRoute, and StatusBadge components
 docs: add README with architecture decisions and setup guide
 refactor: migrate full codebase to TypeScript
 ```
-
----
-
-## Demo Video Flow (~3 minutes)
-
-1. Open the app → Home page → DevTools Console: `changeContext → home_screen`
-2. Click "Get Started" → Login page → `changeContext → login_screen`
-3. Type any credentials → click Sign In → CSID generated, `init` API fires, success badge
-4. Auto-redirect to Account → account cards + transactions + console log
-5. Click "Make a Payment" → fill form → Confirm → `getScore` fires + success badge
-6. Click Logout → back to Home → log in again → **new CSID** appears in console
-7. DevTools Network → inspect the `init` request body — show full JSON payload
 
 ---
 
