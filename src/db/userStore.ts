@@ -1,0 +1,68 @@
+import { DB_USERS_KEY, INITIAL_CHECKING_BALANCE, INITIAL_SAVINGS_BALANCE } from '../config';
+
+interface StoredUser {
+  email: string;
+  password: string;
+  checkingBalance: number;
+  savingsBalance: number;
+  createdAt: string;
+}
+
+function getAll(): StoredUser[] {
+  try {
+    return JSON.parse(localStorage.getItem(DB_USERS_KEY) ?? '[]') as StoredUser[];
+  } catch {
+    return [];
+  }
+}
+
+function save(users: StoredUser[]): void {
+  localStorage.setItem(DB_USERS_KEY, JSON.stringify(users));
+}
+
+export function registerUser(email: string, password: string): { ok: true } | { ok: false; error: string } {
+  const users = getAll();
+  if (users.find(u => u.email === email)) {
+    return { ok: false, error: 'This email is already registered.' };
+  }
+  users.push({
+    email,
+    password,
+    checkingBalance: INITIAL_CHECKING_BALANCE,
+    savingsBalance:  INITIAL_SAVINGS_BALANCE,
+    createdAt: new Date().toISOString(),
+  });
+  save(users);
+  console.log('[DB] User registered →', email);
+  return { ok: true };
+}
+
+export function loginUser(email: string, password: string): { ok: true } | { ok: false; error: string } {
+  const user = getAll().find(u => u.email === email);
+  if (!user)                      return { ok: false, error: 'Email not found.' };
+  if (user.password !== password) return { ok: false, error: 'Incorrect password.' };
+  console.log('[DB] User authenticated →', email);
+  return { ok: true };
+}
+
+export function getBalances(email: string): { checking: number; savings: number } {
+  const user = getAll().find(u => u.email === email);
+  return {
+    checking: user?.checkingBalance ?? 0,
+    savings:  user?.savingsBalance  ?? 0,
+  };
+}
+
+export function deductFromChecking(email: string, amount: number): void {
+  const users = getAll();
+  const user  = users.find(u => u.email === email);
+  if (user) {
+    user.checkingBalance = parseFloat((user.checkingBalance - amount).toFixed(2));
+    save(users);
+    console.log('[DB] Balance updated → checking:', user.checkingBalance);
+  }
+}
+
+export function clearUsers(): void {
+  localStorage.removeItem(DB_USERS_KEY);
+}

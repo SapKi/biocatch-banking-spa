@@ -1,19 +1,29 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSDKContext } from '../hooks/useSDKContext';
 import { triggerGetScore } from '../services/apiService';
+import { addTransaction } from '../utils/transactionStore';
+import { deductFromChecking } from '../db/userStore';
 import StatusBadge from '../components/StatusBadge';
 import { ApiStatus } from '../types';
+import styles from './Payment.module.css';
 
 export default function Payment() {
   useSDKContext('payment_screen');
 
-  const { csid, initDone } = useAuth();
+  const { csid, initDone, user } = useAuth();
+  const navigate = useNavigate();
 
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount]       = useState('');
-  const [note, setNote]           = useState('');
   const [apiStatus, setApiStatus] = useState<ApiStatus>({ status: 'idle', message: '' });
+
+  function handleAnotherPayment() {
+    setRecipient('');
+    setAmount('');
+    setApiStatus({ status: 'idle', message: '' });
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -27,12 +37,20 @@ export default function Payment() {
     setApiStatus({ status: 'loading', message: 'Processing payment…' });
 
     try {
-      // csid is guaranteed non-null here: initDone is only true after a successful login,
-      // which always generates and stores a CSID.
-      const result = await triggerGetScore(csid!);
+      const email = user!.email;
+      const paid  = parseFloat(amount);
+      const result = await triggerGetScore(csid!, email);
+
+      deductFromChecking(email, paid);
+      addTransaction(email, {
+        date:        new Date().toISOString().split('T')[0],
+        description: `Transfer to ${recipient}`,
+        amount:      -paid,
+      });
+
       setApiStatus({
         status: 'success',
-        message: `Payment of $${parseFloat(amount).toFixed(2)} to ${recipient} submitted successfully.`,
+        message: `Payment of ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(paid)} to ${recipient} submitted successfully.`,
       });
       console.log('[Payment] getScore result:', result);
     } catch (err) {
@@ -42,30 +60,30 @@ export default function Payment() {
   }
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <h2 style={styles.heading}>Make a Payment</h2>
-        <p style={styles.sub}>Transfer funds to another account.</p>
+    <div className={styles.page}>
+      <div className={styles.card}>
+        <h2 className={styles.heading}>Make a Payment</h2>
+        <p className={styles.sub}>Transfer funds to another account.</p>
 
         {!initDone && (
-          <div style={styles.warning}>
+          <div className={styles.warning}>
             ⚠️ Session not fully initialised. Please log out and log in again.
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <label style={styles.label}>Recipient Account</label>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <label className={styles.label}>Recipient Account</label>
           <input
-            style={styles.input}
+            className={styles.input}
             type="text"
             placeholder="e.g. ACC-987654"
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
           />
 
-          <label style={styles.label}>Amount (USD)</label>
+          <label className={styles.label}>Amount (USD)</label>
           <input
-            style={styles.input}
+            className={styles.input}
             type="number"
             min="0.01"
             step="0.01"
@@ -74,21 +92,12 @@ export default function Payment() {
             onChange={(e) => setAmount(e.target.value)}
           />
 
-          <label style={styles.label}>Note (optional)</label>
-          <input
-            style={styles.input}
-            type="text"
-            placeholder="e.g. Rent for May"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-
           <button
             type="submit"
+            className={styles.btn}
             style={{
-              ...styles.btn,
               opacity: apiStatus.status === 'loading' || !initDone ? 0.7 : 1,
-              cursor: apiStatus.status === 'loading' || !initDone ? 'not-allowed' : 'pointer',
+              cursor:  apiStatus.status === 'loading' || !initDone ? 'not-allowed' : 'pointer',
             }}
             disabled={apiStatus.status === 'loading' || !initDone}
           >
@@ -97,57 +106,18 @@ export default function Payment() {
         </form>
 
         <StatusBadge status={apiStatus.status} message={apiStatus.message} />
+
+        {apiStatus.status === 'success' && (
+          <div className={styles.actions}>
+            <button onClick={handleAnotherPayment} className={styles.btnSecondary}>
+              Make Another Payment
+            </button>
+            <button onClick={() => navigate('/account')} className={styles.btnGhost}>
+              View Transactions
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
-const styles = {
-  page: {
-    display: 'flex',
-    justifyContent: 'center',
-    padding: '4rem 1rem',
-    minHeight: 'calc(100vh - 60px)',
-    background: '#f4f7fb',
-  },
-  card: {
-    background: '#fff',
-    borderRadius: '12px',
-    padding: '2.5rem 2rem',
-    width: '100%',
-    maxWidth: '460px',
-    boxShadow: '0 4px 20px rgba(26,43,74,0.1)',
-    height: 'fit-content',
-  },
-  heading: { color: '#1a2b4a', marginBottom: '0.4rem' },
-  sub: { color: '#5a6a7e', fontSize: '0.9rem', marginBottom: '1.8rem' },
-  warning: {
-    background: '#fff8e1',
-    border: '1px solid #f9d423',
-    borderRadius: '6px',
-    padding: '0.75rem 1rem',
-    color: '#7c6200',
-    fontSize: '0.85rem',
-    marginBottom: '1.2rem',
-  },
-  form: { display: 'flex', flexDirection: 'column', gap: '0.6rem' },
-  label: { color: '#1a2b4a', fontSize: '0.875rem', fontWeight: 600 },
-  input: {
-    padding: '0.7rem 0.9rem',
-    border: '1px solid #ccd9ef',
-    borderRadius: '6px',
-    fontSize: '1rem',
-    marginBottom: '0.6rem',
-    outline: 'none',
-  },
-  btn: {
-    marginTop: '0.5rem',
-    padding: '0.85rem',
-    background: '#1a4db5',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '1rem',
-    fontWeight: 600,
-  },
-};

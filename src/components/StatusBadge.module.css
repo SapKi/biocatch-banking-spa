@@ -1,0 +1,25 @@
+.badge {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+}
+
+.loading {
+  background: #e8f0ff;
+  color: #1a4db5;
+  border-color: #a8c0e0;
+}
+
+.success {
+  background: #e6f9ec;
+  color: #1a7c3e;
+  border-color: #74d99f;
+}
+
+.error {
+  background: #fff0f0;
+  color: #c0392b;
+  border-color: #f1a9a9;
+}

@@ -10,18 +10,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [csid, setCsid] = useState<string | null>(() => sessionStorage.getItem('csid'));
   const [initDone, setInitDone] = useState(false);
 
-  const login = useCallback((userData: User) => {
+  // Step 1: generate CSID + tell SDK. User is NOT set here — call before the API.
+  const startSession = useCallback((): string => {
     const newCsid = generateUUID();
     console.log('[Auth] New CSID generated →', newCsid);
-
     sessionStorage.setItem('csid', newCsid);
     setCsid(newCsid);
-    setUser(userData);
-
     setCustomerSessionId(newCsid);
+    return newCsid;
   }, []);
 
-  const markInitDone = useCallback(() => {
+  // Step 2: set user + initDone. Call only after the API call succeeds.
+  const completeAuth = useCallback((userData: User) => {
+    console.log('[Auth] Session confirmed for', userData.username);
+    setUser(userData);
     setInitDone(true);
   }, []);
 
@@ -34,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, csid, initDone, login, logout, markInitDone }}>
+    <AuthContext.Provider value={{ user, csid, initDone, startSession, completeAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );

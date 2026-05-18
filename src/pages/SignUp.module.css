@@ -1,0 +1,103 @@
+.page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 4rem 1rem;
+  min-height: calc(100vh - 60px);
+  background: #f4f7fb;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 4px 20px rgba(26, 43, 74, 0.1);
+}
+
+.heading {
+  color: #1a2b4a;
+  margin-bottom: 0.4rem;
+}
+
+.sub {
+  color: #5a6a7e;
+  font-size: 0.9rem;
+  margin-bottom: 1.8rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.label {
+  color: #1a2b4a;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.input {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #ccd9ef;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 0.6rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pwWrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccd9ef;
+  border-radius: 6px;
+  margin-bottom: 0.6rem;
+  overflow: hidden;
+}
+
+.pwInput {
+  flex: 1;
+  padding: 0.7rem 0.9rem;
+  border: none;
+  font-size: 1rem;
+  outline: none;
+}
+
+.pwToggle {
+  padding: 0 0.9rem;
+  background: none;
+  border: none;
+  color: #1a4db5;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn {
+  margin-top: 0.5rem;
+  padding: 0.85rem;
+  background: #1a7c3e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+.footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #5a6a7e;
+}
+
+.link {
+  color: #1a4db5;
+  font-weight: 600;
+}

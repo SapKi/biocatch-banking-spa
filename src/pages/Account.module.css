@@ -1,0 +1,144 @@
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.heading {
+  color: #1a2b4a;
+  margin-bottom: 0.25rem;
+}
+
+.sub {
+  color: #5a6a7e;
+  font-size: 0.9rem;
+}
+
+.payBtn {
+  padding: 0.7rem 1.5rem;
+  background: #1a4db5;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.accountGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  margin-bottom: 2.5rem;
+}
+
+.accountCard {
+  background: #1a2b4a;
+  color: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(26, 43, 74, 0.2);
+}
+
+.accType {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.accDesc {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin-bottom: 0.75rem;
+}
+
+.accBalance {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.accId {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.section {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e0e8f5;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  color: #1a2b4a;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e0e8f5;
+  margin: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th {
+  padding: 0.75rem 1.25rem;
+  text-align: left;
+  color: #5a6a7e;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f8fafd;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.td {
+  padding: 0.85rem 1.25rem;
+  color: #1a2b4a;
+  font-size: 0.9rem;
+}
+
+.tdRight {
+  text-align: right;
+  font-weight: 600;
+}
+
+.rowEven {
+  background: #fff;
+}
+
+.rowOdd {
+  background: #f8fafd;
+}
+
+.empty {
+  padding: 2rem;
+  text-align: center;
+  color: #5a6a7e;
+  font-size: 0.9rem;
+}
+
+.debug {
+  margin-top: 1.5rem;
+}
+
+.debugCode {
+  display: block;
+  margin-top: 0.5rem;
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #5a6a7e;
+  word-break: break-all;
+}
