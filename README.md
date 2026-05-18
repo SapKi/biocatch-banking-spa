@@ -1,16 +1,56 @@
 # SecureBank – BioCatch Take-Home Assignment
 
-A React SPA that simulates a banking user journey and integrates the BioCatch behavioral-biometrics SDK.
+A React + TypeScript SPA that simulates a banking user journey and integrates the BioCatch behavioral-biometrics SDK.
+
+---
+
+## Prerequisites
+
+- **Node.js** v18 or higher — [nodejs.org](https://nodejs.org)
+- **npm** v9 or higher (bundled with Node.js)
+
+Verify your versions:
+
+```bash
+node -v   # should print v18.x.x or higher
+npm -v    # should print 9.x.x or higher
+```
 
 ---
 
 ## Quick Start
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/SapKi/biocatch-banking-spa.git
+cd biocatch-banking-spa
+
+# 2. Install dependencies
 npm install
+
+# 3. Start the development server
 npm run dev
-# → http://localhost:5173
 ```
+
+Open **http://localhost:5173** in your browser.
+
+### Other commands
+
+```bash
+npm run build    # production build + TypeScript type check
+npm run preview  # preview the production build locally
+npm run lint     # run ESLint
+```
+
+---
+
+## User Flow
+
+```
+Home → Login → Account Overview → Make Payment → Logout
+```
+
+Any non-empty username and password will log you in (auth is simulated).
 
 ---
 
@@ -18,91 +58,109 @@ npm run dev
 
 ```
 biocatch-banking-spa/
-├── index.html                  # SDK script tag lives here (see note below)
+├── index.html                  # SDK script tag + isHybrid metatag
+├── tsconfig.json               # TypeScript config (strict mode)
 ├── src/
-│   ├── main.jsx                # Entry: BrowserRouter + AuthProvider + App
-│   ├── App.jsx                 # Route definitions + layout shell
-│   ├── index.css               # Minimal global reset
+│   ├── main.tsx                # Entry: BrowserRouter + AuthProvider + App
+│   ├── App.tsx                 # Route definitions + layout shell
+│   ├── index.css               # Global CSS reset
+│   ├── types.ts                # Shared interfaces and union types
+│   ├── global.d.ts             # CdApi interface + Window.cdApi declaration
 │   │
 │   ├── context/
-│   │   └── AuthContext.jsx     # Session state: user, CSID, initDone flag
+│   │   └── AuthContext.tsx     # Session state: user, CSID, initDone flag
 │   │
 │   ├── services/
-│   │   ├── sdkService.js       # Thin wrapper around window.cdApi
-│   │   └── apiService.js       # All fetch calls (init, getScore)
+│   │   ├── sdkService.ts       # Thin wrapper around window.cdApi
+│   │   └── apiService.ts       # All fetch calls — triggerInit, triggerGetScore
 │   │
 │   ├── hooks/
-│   │   └── useSDKContext.js    # Per-page hook that calls changeContext on mount
+│   │   └── useSDKContext.ts    # Per-page hook: calls changeContext on mount
 │   │
 │   ├── utils/
-│   │   └── uuid.js             # UUID generator (crypto.randomUUID + fallback)
+│   │   └── uuid.ts             # UUID generator (crypto.randomUUID + fallback)
 │   │
 │   ├── components/
-│   │   ├── Navbar.jsx          # Top nav with logout
-│   │   ├── ProtectedRoute.jsx  # Auth guard (redirects to /login)
-│   │   └── StatusBadge.jsx     # Loading / success / error feedback UI
+│   │   ├── Navbar.tsx          # Top nav with logout
+│   │   ├── ProtectedRoute.tsx  # Auth guard — redirects to /login
+│   │   └── StatusBadge.tsx     # Loading / success / error feedback UI
 │   │
 │   └── pages/
-│       ├── Home.jsx            # Landing page
-│       ├── Login.jsx           # Login form — triggers init API
-│       ├── Account.jsx         # Account overview (protected)
-│       └── Payment.jsx         # Payment form — triggers getScore API
+│       ├── Home.tsx            # Landing page
+│       ├── Login.tsx           # Login form — triggers init API call
+│       ├── Account.tsx         # Account overview (protected)
+│       └── Payment.tsx         # Payment form — triggers getScore API call
 ```
 
 ---
 
 ## Architecture Decisions
 
-### 1. SDK loaded in `index.html` (not lazily in React)
+### 1. SDK loaded in `index.html` — not lazily in React
 
 ```html
 <script src="https://bcdn-4ff4f23f.we-stats.com/scripts/4ff4f23f/4ff4f23f.js" defer></script>
 ```
 
-**Why:** The SDK must be ready before any React component mounts. Loading it in `<head defer>` guarantees `window.cdApi` exists by the time the React bundle executes. Lazy-loading it inside a component creates a race condition where the first page's `changeContext` call would fire before `cdApi` exists.
+Loading the SDK in `<head defer>` guarantees `window.cdApi` exists before the React bundle executes. Lazy-loading inside a component creates a race condition — the first `changeContext` call would fire before `cdApi` is ready.
 
 The `<meta name="isHybrid" content="false">` tag is also required — the SDK reads it on load to choose its web vs. native branch.
 
 ### 2. CSID stored in `sessionStorage`
 
-**Why:** `sessionStorage` is cleared when the tab closes, which matches banking session semantics. A new tab = a new session = a new CSID. `localStorage` would persist across tabs and browser restarts, meaning the same CSID would follow the user across logically separate sessions — incorrect for fraud detection.
+`sessionStorage` is cleared when the tab closes — correct for a banking session. A new tab = a new session = a new CSID. `localStorage` would persist across tabs and browser restarts, so the same CSID would follow the user across logically separate sessions.
 
 Flow:
-- Login → `generateUUID()` → stored in `sessionStorage` → `cdApi.setCustomerSessionId(csid)`
-- Logout → `sessionStorage.removeItem('csid')` → `csid` state reset
-- Next login → fresh UUID
+```
+Login  → generateUUID() → sessionStorage.setItem → cdApi.setCustomerSessionId(csid)
+Logout → sessionStorage.removeItem('csid') → initDone reset to false
+Next login → fresh UUID
+```
 
-### 3. `AuthContext` gates getScore behind initDone
+### 3. `initDone` gates getScore
 
-The requirement is: **getScore must only run after init succeeds.**
-
-`AuthContext` holds an `initDone` boolean that starts `false`. It is set to `true` only inside `Login.jsx` after `triggerInit()` resolves. The Payment page reads `initDone` and blocks submission if it's false. This is enforced at the data layer, not just in the UI.
+`AuthContext` holds an `initDone: boolean` that starts `false`. It is set to `true` only after `triggerInit()` resolves successfully on login. The Payment page reads `initDone` and blocks submission if it is `false` — enforced at the data layer, not just in the UI.
 
 ### 4. SDK context changes are per-page hooks
 
-Each page calls `useSDKContext("screen_name")` — a custom hook that wraps `changeContext` in a `useEffect` with an empty dependency array. This means:
-- The call fires exactly once, on mount.
-- Context changes are coupled to route changes (React Router mounts/unmounts pages on navigation).
-- No central route-watcher needed; each page owns its own SDK context declaration.
+Each page calls `useSDKContext("screen_name")`. The hook wraps `changeContext` in `useEffect` with an empty dependency array — fires exactly once, on mount. Context changes are tied to React Router's mount/unmount lifecycle. No central route-watcher needed; each page owns its SDK context.
 
 ### 5. API layer is separated from UI
 
-`apiService.js` owns the endpoint URL, headers, payload shape, and logging. Pages call named functions (`triggerInit`, `triggerGetScore`) — they never construct `fetch` calls directly. This makes it trivial to add retry logic, auth headers, or swap the endpoint without touching any page component.
+`apiService.ts` owns the endpoint URL, headers, payload shape, and logging. Pages call named functions (`triggerInit`, `triggerGetScore`) — they never construct `fetch` calls directly. The `Action` and `ActivityType` union types make the allowed values explicit at the call site.
 
-### 6. Context API instead of Redux
+### 6. TypeScript with strict mode
 
-The state is a single linear session: unauthenticated → authenticated → (optionally) init done. Three values total. Redux would add boilerplate with no architectural benefit here. Context + `useState` is sufficient and easier to explain in an interview.
+All shared contracts live in `src/types.ts`. `window.cdApi` is typed via `global.d.ts` using a `Window` interface augmentation — no `any` casts needed in service code. `strict: true` catches implicit `any`, unchecked null access, and unused variables at compile time.
+
+### 7. Context API instead of Redux
+
+The state is a single linear session: unauthenticated → authenticated → init done. Three values total. Redux would add boilerplate with no benefit here.
 
 ---
 
 ## API Flow
 
-| User action  | API call          | Payload `action` | Payload `activityType` |
-|--------------|-------------------|------------------|------------------------|
-| Click Login  | `triggerInit`     | `"init"`         | `"LOGIN"`              |
-| Click Pay    | `triggerGetScore` | `"getScore"`     | `"PAYMENT"`            |
+| User action  | Function          | `action`     | `activityType` |
+|--------------|-------------------|--------------|----------------|
+| Click Login  | `triggerInit`     | `"init"`     | `"LOGIN"`      |
+| Click Pay    | `triggerGetScore` | `"getScore"` | `"PAYMENT"`    |
 
 Both POST to: `https://hooks.zapier.com/hooks/catch/1888053/bgwofce/`
+
+Example payload:
+```json
+{
+  "customerId": "dummy",
+  "action": "init",
+  "customerSessionId": "550e8400-e29b-41d4-a716-446655440000",
+  "activityType": "LOGIN",
+  "uuid": "a3f1c2d4-...",
+  "brand": "SD",
+  "solution": "ATO",
+  "iam": "sapirkikoz@gmail.com"
+}
+```
 
 ---
 
@@ -118,9 +176,9 @@ Both POST to: `https://hooks.zapier.com/hooks/catch/1888053/bgwofce/`
 
 ---
 
-## Observability / Debugging
+## Observability — Browser Console
 
-Open DevTools Console. You will see:
+Open **DevTools → Console**. You will see:
 
 ```
 [App]  Booting SecureBank SPA
@@ -137,50 +195,53 @@ Open DevTools Console. You will see:
 [Auth] Session ended — CSID cleared
 ```
 
+To verify the full payload, open **DevTools → Network**, filter by `bgwofce`, and inspect the request body.
+
 ---
 
 ## Screenshots to Capture
 
-1. **Home page** — landing hero with "Get Started" button
+1. **Home page** — hero section with "Get Started" button
 2. **Login page** — form with fields filled in
 3. **Login loading state** — "Signing in…" status badge
 4. **Account page** — account cards + transaction table
 5. **Payment page** — form filled in
 6. **Payment success** — green status badge
-7. **DevTools Console** — showing all SDK and API log lines
-8. **DevTools Network** — POST to Zapier with full payload visible
+7. **DevTools Console** — showing all `[SDK]` and `[API]` log lines
+8. **DevTools Network** — POST to Zapier with full JSON payload visible
 
 ---
 
-## Suggested Git Commit Structure
+## Git Commit Structure
 
 ```
-feat: scaffold Vite React app with react-router-dom
+chore: scaffold Vite + React project
 feat: add AuthContext with CSID lifecycle management
-feat: add sdkService wrapper and index.html SDK script tag
+feat: integrate BioCatch SDK globally and add sdkService wrapper
 feat: add apiService with triggerInit and triggerGetScore
-feat: add useSDKContext hook for per-page context changes
-feat: implement Home, Login, Account, Payment pages
-feat: add ProtectedRoute and Navbar components
-docs: add README with architecture explanation
+feat: add useSDKContext hook for per-page context tracking
+feat: implement all pages — Home, Login, Account, Payment
+feat: add Navbar, ProtectedRoute, and StatusBadge components
+docs: add README with architecture decisions and setup guide
+refactor: migrate full codebase to TypeScript
 ```
 
 ---
 
-## Demo Video Flow (suggested ~3 min)
+## Demo Video Flow (~3 minutes)
 
-1. Open the app → Home page loads → show console: `changeContext → home_screen`
-2. Click "Get Started" → Login page → show console: `changeContext → login_screen`
-3. Type credentials → click Sign In → show: CSID generated, init API call, success badge
-4. Auto-redirect to Account → show account cards + transactions + console log
-5. Click "Make a Payment" → fill form → click Confirm → show getScore API call + success
-6. Click Logout → redirected to Home → log in again → show a **new** CSID in console
-7. Open DevTools Network → replay the init request → show full JSON payload
+1. Open the app → Home page → DevTools Console: `changeContext → home_screen`
+2. Click "Get Started" → Login page → `changeContext → login_screen`
+3. Type any credentials → click Sign In → CSID generated, `init` API fires, success badge
+4. Auto-redirect to Account → account cards + transactions + console log
+5. Click "Make a Payment" → fill form → Confirm → `getScore` fires + success badge
+6. Click Logout → back to Home → log in again → **new CSID** appears in console
+7. DevTools Network → inspect the `init` request body — show full JSON payload
 
 ---
 
 ## Notes
 
-- No real auth — any non-empty username/password logs in.
-- Balances and transactions are static mock data.
-- The Zapier webhook accepts any payload; a real integration would validate a score response and act on it.
+- No real authentication — any non-empty username/password logs in.
+- Account balances and transactions are static mock data.
+- The Zapier webhook accepts any valid JSON; a real integration would parse the score from the response and act on it.
