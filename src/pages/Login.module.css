@@ -4,7 +4,7 @@
   align-items: flex-start;
   padding: 4rem 1rem;
   min-height: calc(100vh - 60px);
-  background: #f4f7fb;
+  background: #fbf8fe;
 }
 
 .card {
@@ -13,16 +13,16 @@
   padding: 2.5rem 2rem;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 4px 20px rgba(26, 43, 74, 0.1);
+  box-shadow: 0 4px 20px rgba(123, 92, 168, 0.1);
 }
 
 .heading {
-  color: #1a2b4a;
+  color: #4a3660;
   margin-bottom: 0.4rem;
 }
 
 .sub {
-  color: #5a6a7e;
+  color: #7a6490;
   font-size: 0.9rem;
   margin-bottom: 1.8rem;
 }
@@ -34,14 +34,14 @@
 }
 
 .label {
-  color: #1a2b4a;
+  color: #4a3660;
   font-size: 0.875rem;
   font-weight: 600;
 }
 
 .input {
   padding: 0.7rem 0.9rem;
-  border: 1px solid #ccd9ef;
+  border: 1px solid #e8daf5;
   border-radius: 6px;
   font-size: 1rem;
   margin-bottom: 0.6rem;
@@ -50,13 +50,21 @@
   box-sizing: border-box;
 }
 
+.input:focus {
+  border-color: #9b6dbf;
+}
+
 .pwWrap {
   display: flex;
   align-items: center;
-  border: 1px solid #ccd9ef;
+  border: 1px solid #e8daf5;
   border-radius: 6px;
   margin-bottom: 0.6rem;
   overflow: hidden;
+}
+
+.pwWrap:focus-within {
+  border-color: #9b6dbf;
 }
 
 .pwInput {
@@ -71,7 +79,7 @@
   padding: 0 0.9rem;
   background: none;
   border: none;
-  color: #1a4db5;
+  color: #9b6dbf;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -81,7 +89,7 @@
 .btn {
   margin-top: 0.5rem;
   padding: 0.85rem;
-  background: #1a4db5;
+  background: #9b6dbf;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -94,10 +102,17 @@
   margin-top: 1.5rem;
   text-align: center;
   font-size: 0.875rem;
-  color: #5a6a7e;
+  color: #7a6490;
 }
 
 .link {
-  color: #1a4db5;
+  color: #9b6dbf;
   font-weight: 600;
+}
+
+.linkBold {
+  color: #6a3fa0;
+  font-weight: 900;
+  font-size: 1.05rem;
+  text-decoration: underline;
 }

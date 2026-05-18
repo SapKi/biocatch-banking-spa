@@ -11,20 +11,20 @@
 
 .title {
   font-size: 2.5rem;
-  color: #1a2b4a;
+  color: #4a3660;
   margin-bottom: 1rem;
 }
 
 .subtitle {
   font-size: 1.15rem;
-  color: #5a6a7e;
+  color: #7a6490;
   margin-bottom: 2rem;
 }
 
 .cta {
   display: inline-block;
   padding: 0.85rem 2.2rem;
-  background: #1a4db5;
+  background: #9b6dbf;
   color: #fff;
   border-radius: 8px;
   text-decoration: none;
@@ -40,11 +40,11 @@
 
 .card {
   background: #fff;
-  border: 1px solid #e0e8f5;
+  border: 1px solid #e8daf5;
   border-radius: 10px;
   padding: 1.5rem;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(26, 43, 74, 0.06);
+  box-shadow: 0 2px 8px rgba(123, 92, 168, 0.06);
 }
 
 .cardIcon {
@@ -53,12 +53,12 @@
 }
 
 .cardTitle {
-  color: #1a2b4a;
+  color: #4a3660;
   margin-bottom: 0.5rem;
 }
 
 .cardDesc {
-  color: #5a6a7e;
+  color: #7a6490;
   font-size: 0.9rem;
   line-height: 1.5;
 }

@@ -12,7 +12,7 @@ export default function App() {
   const { user } = useAuth();
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f4f7fb', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#fbf8fe', fontFamily: 'system-ui, sans-serif' }}>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />

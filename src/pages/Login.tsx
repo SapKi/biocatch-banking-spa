@@ -97,8 +97,7 @@ export default function Login() {
           Don&apos;t have an account?{' '}
           <Link
             to="/signup"
-            className={styles.link}
-            style={userNotFound ? { fontWeight: 800, fontSize: '1rem', textDecoration: 'underline' } : undefined}
+            className={userNotFound ? styles.linkBold : styles.link}
           >
             Create one
           </Link>

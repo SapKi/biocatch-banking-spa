@@ -12,18 +12,18 @@
 }
 
 .heading {
-  color: #1a2b4a;
+  color: #4a3660;
   margin-bottom: 0.25rem;
 }
 
 .sub {
-  color: #5a6a7e;
+  color: #7a6490;
   font-size: 0.9rem;
 }
 
 .payBtn {
   padding: 0.7rem 1.5rem;
-  background: #1a4db5;
+  background: #9b6dbf;
   color: #fff;
   border-radius: 6px;
   text-decoration: none;
@@ -39,11 +39,11 @@
 }
 
 .accountCard {
-  background: #1a2b4a;
+  background: #7b5ca8;
   color: #fff;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(26, 43, 74, 0.2);
+  box-shadow: 0 4px 16px rgba(123, 92, 168, 0.25);
 }
 
 .accType {
@@ -74,14 +74,14 @@
 .section {
   background: #fff;
   border-radius: 10px;
-  border: 1px solid #e0e8f5;
+  border: 1px solid #f0eafc;
   overflow: hidden;
 }
 
 .sectionTitle {
-  color: #1a2b4a;
+  color: #4a3660;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e0e8f5;
+  border-bottom: 1px solid #f0eafc;
   margin: 0;
 }
 
@@ -93,11 +93,11 @@
 .th {
   padding: 0.75rem 1.25rem;
   text-align: left;
-  color: #5a6a7e;
+  color: #7a6490;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: #f8fafd;
+  background: #f7f3fc;
 }
 
 .thRight {
@@ -106,7 +106,7 @@
 
 .td {
   padding: 0.85rem 1.25rem;
-  color: #1a2b4a;
+  color: #4a3660;
   font-size: 0.9rem;
 }
 
@@ -120,13 +120,13 @@
 }
 
 .rowOdd {
-  background: #f8fafd;
+  background: #f7f3fc;
 }
 
 .empty {
   padding: 2rem;
   text-align: center;
-  color: #5a6a7e;
+  color: #7a6490;
   font-size: 0.9rem;
 }
 
@@ -139,6 +139,6 @@
   margin-top: 0.5rem;
   font-family: monospace;
   font-size: 0.75rem;
-  color: #5a6a7e;
+  color: #7a6490;
   word-break: break-all;
 }
