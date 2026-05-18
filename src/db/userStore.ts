@@ -1,4 +1,5 @@
 import { DB_USERS_KEY, INITIAL_CHECKING_BALANCE, INITIAL_SAVINGS_BALANCE } from '../config';
+import { log } from '../utils/logger';
 
 interface StoredUser {
   email: string;
@@ -33,7 +34,7 @@ export function registerUser(email: string, password: string): { ok: true } | { 
     createdAt: new Date().toISOString(),
   });
   save(users);
-  console.log('[DB] User registered →', email);
+  log.db.info('User registered →', email);
   return { ok: true };
 }
 
@@ -41,7 +42,7 @@ export function loginUser(email: string, password: string): { ok: true } | { ok:
   const user = getAll().find(u => u.email === email);
   if (!user)                      return { ok: false, error: 'Email not found.' };
   if (user.password !== password) return { ok: false, error: 'Incorrect password.' };
-  console.log('[DB] User authenticated →', email);
+  log.db.info('User authenticated →', email);
   return { ok: true };
 }
 
@@ -59,7 +60,7 @@ export function deductFromChecking(email: string, amount: number): void {
   if (user) {
     user.checkingBalance = parseFloat((user.checkingBalance - amount).toFixed(2));
     save(users);
-    console.log('[DB] Balance updated → checking:', user.checkingBalance);
+    log.db.info('Balance updated → checking:', user.checkingBalance);
   }
 }
 

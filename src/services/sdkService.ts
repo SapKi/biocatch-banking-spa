@@ -1,6 +1,8 @@
-function getApi(): CdApi | null {
+import { log } from '../utils/logger';
+
+function getApi(): NonNullable<Window['cdApi']> | null {
   if (typeof window === 'undefined' || !window.cdApi) {
-    console.warn('[SDK] cdApi not available yet');
+    log.sdk.warn('cdApi not available yet');
     return null;
   }
   return window.cdApi;
@@ -9,20 +11,20 @@ function getApi(): CdApi | null {
 export function setCustomerSessionId(csid: string): void {
   const api = getApi();
   if (!api) return;
-  console.log('[SDK] setCustomerSessionId →', csid);
+  log.sdk.info('setCustomerSessionId →', csid);
   api.setCustomerSessionId(csid);
 }
 
 export function changeContext(contextName: string): void {
   const api = getApi();
   if (!api) return;
-  console.log('[SDK] changeContext →', contextName);
+  log.sdk.info('changeContext →', contextName);
   api.changeContext(contextName);
 }
 
 export function setCustomerBrand(brand: string): void {
   const api = getApi();
   if (!api) return;
-  console.log('[SDK] setCustomerBrand →', brand);
+  log.sdk.info('setCustomerBrand →', brand);
   api.setCustomerBrand(brand);
 }

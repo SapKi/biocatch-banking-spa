@@ -1,5 +1,6 @@
 import { generateUUID } from '../utils/uuid';
 import { post } from './httpClient';
+import { log } from '../utils/logger';
 import { API_ENDPOINT, API_BRAND, API_SOLUTION, API_CUSTOMER_ID } from '../config';
 import { Action, ActivityType, ApiPayload } from '../types';
 
@@ -17,7 +18,7 @@ function buildPayload(action: Action, activityType: ActivityType, csid: string, 
 }
 
 function postAction(action: Action, activityType: ActivityType, csid: string, iam: string): Promise<unknown> {
-  console.log(`[API] ${action} / ${activityType} — CSID: ${csid}`);
+  log.api.info(`${action} / ${activityType} — CSID: ${csid}`);
   return post(API_ENDPOINT, buildPayload(action, activityType, csid, iam));
 }
 

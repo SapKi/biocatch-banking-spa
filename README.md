@@ -259,6 +259,7 @@ biocatch-banking-spa/
     │
     ├── utils/
     │   ├── uuid.ts                   # generateUUID() — crypto.randomUUID + fallback
+    │   ├── logger.ts                 # Coloured console logger — one domain per colour
     │   └── transactionStore.ts       # getTransactions · addTransaction · clearTransactions
     │
     ├── components/
@@ -392,29 +393,67 @@ If the API call fails, `user` stays `null`. The Navbar shows no links. Protected
 
 ---
 
-## Observability — Browser Console
+## Observability — Coloured Console Logger
+
+All log output goes through `src/utils/logger.ts`. Each domain has its own colour so you can visually separate concerns at a glance in DevTools.
+
+### Colour Map
+
+| Colour | Tag | Domain | File |
+|--------|-----|--------|------|
+|  Slate | `[App]` | Boot messages | `main.tsx` |
+| 🔵 Blue | `[Auth]` | CSID lifecycle, session state | `AuthContext.tsx` |
+| 🟢 Green | `[App→SDK]` | App calls into the BioCatch SDK | `sdkService.ts` |
+| 🟡 Amber | `[API]` | Payload builder | `apiService.ts` |
+| 🔵 Cyan | `[HTTP]` | Raw fetch — request, status, response | `httpClient.ts` |
+| 🟣 Violet | `[DB]` | localStorage — users and transactions | `userStore.ts`, `transactionStore.ts` |
+| 🟠 Orange | `[Payment]` | Payment result | `Payment.tsx` |
+
+> **React StrictMode and SDK calls**
+>
+> The app runs inside `<React.StrictMode>`, which in development intentionally double-invokes `useEffect` (mount → cleanup → remount) to surface accidental side effects. `useSDKContext` guards against this with a `useRef` flag: the first invocation sets the flag and calls `changeContext`; the second invocation sees the flag and exits early. Each `[App→SDK]` line therefore appears exactly once, in both development and production.
+
+### Usage in code
+
+```typescript
+import { log } from '../utils/logger';
+
+log.auth.info('New CSID generated →', csid);
+log.sdk.info('changeContext →', screen);   // prints [App→SDK]
+log.http.group('POST https://...');   // collapsible group
+log.http.end();                        // closes group
+log.db.error('Write failed', err);
+```
+
+### Full log sequence — Sign In to Payment
+
+Open **DevTools → Console** and follow this sequence:
 
 ```
-[App]  Booting SecureBank SPA
-[SDK]  changeContext → home_screen
-[SDK]  changeContext → login_screen
-[DB]   User authenticated → user@email.com
-[Auth] New CSID generated → <uuid>
-[SDK]  setCustomerSessionId → <uuid>
-[API]  init / LOGIN — CSID: <uuid>
-[HTTP] POST https://hooks.zapier.com/...
-[HTTP] Status: 200 OK
-[HTTP] Response: { attempt: "...", status: "success" }
-[Auth] Session confirmed for user@email.com
-[SDK]  changeContext → account_screen
-[SDK]  changeContext → payment_screen
-[API]  getScore / PAYMENT — CSID: <uuid>
-[DB]   Balance updated → checking: 4850.00
-[DB]   Transaction saved → { date, description, amount }
-[Auth] Session ended — CSID cleared
+[App]      Booting SecureBank SPA
+[App→SDK]  changeContext → home_screen  [App→SDK]  changeContext → login_screen [DB]       User authenticated → user@example.com
+[Auth]     New CSID generated → <uuid>
+[App→SDK]  setCustomerSessionId → <uuid>
+[API]      init / LOGIN — CSID: <uuid>
+▼ [HTTP]   POST https://hooks.zapier.com/hooks/catch/...
+    Body:     { customerId, action, customerSessionId, ... }
+    Status:   200 OK
+    Response: { attempt: "...", id: "...", status: "success" }
+[Auth]     Session confirmed for user@example.com
+[App→SDK]  changeContext → account_screen     (×2 in dev — React StrictMode)
+[App→SDK]  changeContext → payment_screen     (×2 in dev — React StrictMode)
+[API]      getScore / PAYMENT — CSID: <uuid>
+▼ [HTTP]   POST https://hooks.zapier.com/hooks/catch/...
+    Body:     { customerId, action: "getScore", ... }
+    Status:   200 OK
+    Response: { attempt: "...", status: "success" }
+[DB]       Balance updated → checking: 4850.00
+[DB]       Transaction saved → { date: "...", description: "Transfer to ...", amount: -150 }
+[Payment]  getScore result: { ... }
+[Auth]     Session ended — CSID cleared
 ```
 
-Open **DevTools → Network**, filter by `bgwofce` to inspect full request/response.
+Open **DevTools → Network**, filter by `bgwofce` to inspect the raw request/response payload.
 
 ---
 

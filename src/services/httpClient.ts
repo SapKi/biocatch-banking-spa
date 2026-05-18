@@ -1,47 +1,35 @@
-/**
- * httpClient — generic fetch wrapper.
- *
- * Responsible only for the HTTP mechanics:
- * - Sending a POST request
- * - Logging request and response
- * - Normalising errors into thrown Error instances
- *
- * It knows nothing about BioCatch payloads, CSIDs, or business logic.
- * apiService owns that layer.
- */
+import { log } from '../utils/logger';
 
 export async function post(url: string, body: unknown): Promise<unknown> {
-  console.group(`[HTTP] POST ${url}`);
-  console.log('Body:', body);
+  log.http.group(`POST ${url}`);
+  log.http.info('Body:', body);
 
   let response: Response;
   try {
-    // No Content-Type header — avoids CORS preflight.
-    // Zapier parses JSON from the raw body regardless of Content-Type.
     response = await fetch(url, {
       method: 'POST',
       body: JSON.stringify(body),
     });
   } catch (err) {
-    console.error('[HTTP] Network error — request never reached the server');
-    console.error('  type   :', err instanceof Error ? err.constructor.name : typeof err);
-    console.error('  message:', err instanceof Error ? err.message : err);
-    console.error('  causes : ad blocker · offline · CORS preflight rejected');
-    console.groupEnd();
+    log.http.error('Network error — request never reached the server');
+    log.http.error('  type   :', err instanceof Error ? err.constructor.name : typeof err);
+    log.http.error('  message:', err instanceof Error ? err.message : err);
+    log.http.error('  causes : ad blocker · offline · CORS preflight rejected');
+    log.http.end();
     throw err;
   }
 
-  console.log('[HTTP] Status:', response.status, response.statusText);
+  log.http.info('Status:', response.status, response.statusText);
 
   if (!response.ok) {
     const text = await response.text().catch(() => 'no body');
-    console.error('[HTTP] Server error:', response.status, text);
-    console.groupEnd();
+    log.http.error('Server error:', response.status, text);
+    log.http.end();
     throw new Error(`HTTP ${response.status}: ${text}`);
   }
 
   const data: unknown = await response.json().catch(() => ({}));
-  console.log('[HTTP] Response:', data);
-  console.groupEnd();
+  log.http.info('Response:', data);
+  log.http.end();
   return data;
 }

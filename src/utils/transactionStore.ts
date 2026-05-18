@@ -1,5 +1,6 @@
 import { Transaction } from '../types';
 import { DB_TRANSACTIONS_PREFIX } from '../config';
+import { log } from './logger';
 
 function key(email: string): string {
   return `${DB_TRANSACTIONS_PREFIX}${email}`;
@@ -16,7 +17,7 @@ export function getTransactions(email: string): Transaction[] {
 export function addTransaction(email: string, tx: Transaction): void {
   const existing = getTransactions(email);
   localStorage.setItem(key(email), JSON.stringify([tx, ...existing]));
-  console.log('[DB] Transaction saved →', tx);
+  log.db.info('Transaction saved →', tx);
 }
 
 export function clearTransactions(email: string): void {

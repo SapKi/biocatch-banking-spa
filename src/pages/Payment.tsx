@@ -6,6 +6,7 @@ import { triggerGetScore } from '../services/apiService';
 import { addTransaction } from '../utils/transactionStore';
 import { deductFromChecking } from '../db/userStore';
 import StatusBadge from '../components/StatusBadge';
+import { log } from '../utils/logger';
 import { ApiStatus } from '../types';
 import styles from './Payment.module.css';
 
@@ -52,7 +53,7 @@ export default function Payment() {
         status: 'success',
         message: `Payment of ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(paid)} to ${recipient} submitted successfully.`,
       });
-      console.log('[Payment] getScore result:', result);
+      log.payment.info('getScore result:', result);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       setApiStatus({ status: 'error', message: `Payment failed: ${message}` });
