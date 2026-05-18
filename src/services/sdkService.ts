@@ -1,6 +1,8 @@
 import { log } from '../utils/logger';
 
-function getApi(): NonNullable<Window['cdApi']> | null {
+type Api = NonNullable<Window['cdApi']>;
+
+function getApi(): Api | null {
   if (typeof window === 'undefined' || !window.cdApi) {
     log.sdk.warn('cdApi not available yet');
     return null;
@@ -8,23 +10,13 @@ function getApi(): NonNullable<Window['cdApi']> | null {
   return window.cdApi;
 }
 
-export function setCustomerSessionId(csid: string): void {
+function invoke<K extends keyof Api>(method: K, value: string): void {
   const api = getApi();
   if (!api) return;
-  log.sdk.info('setCustomerSessionId →', csid);
-  api.setCustomerSessionId(csid);
+  log.sdk.info(`${String(method)} →`, value);
+  (api[method] as (v: string) => void)(value);
 }
 
-export function changeContext(contextName: string): void {
-  const api = getApi();
-  if (!api) return;
-  log.sdk.info('changeContext →', contextName);
-  api.changeContext(contextName);
-}
-
-export function setCustomerBrand(brand: string): void {
-  const api = getApi();
-  if (!api) return;
-  log.sdk.info('setCustomerBrand →', brand);
-  api.setCustomerBrand(brand);
-}
+export const setCustomerSessionId = (csid: string)  => invoke('setCustomerSessionId', csid);
+export const changeContext         = (name: string)  => invoke('changeContext', name);
+export const setCustomerBrand      = (brand: string) => invoke('setCustomerBrand', brand);

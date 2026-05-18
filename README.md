@@ -363,6 +363,60 @@ If the API call fails, `user` stays `null`. The Navbar shows no links. Protected
 
 ---
 
+## How the Two Parts Connect
+
+The BioCatch system has two independent channels that run in parallel during a session. The CSID is the single thread that ties them together.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Channel 1 — SDK (automatic, background)                        │
+│                                                                 │
+│  SDK loads → user interacts → SDK collects keystrokes,          │
+│  mouse movement, device signals → periodically POSTs data       │
+│  packets to wup-4ff4f23f.eu.v2.we-stats.com                    │
+│                                                                 │
+│  Every packet is tagged with:  customerSessionId = <CSID>       │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ same CSID
+┌────────────────────────────▼────────────────────────────────────┐
+│  Channel 2 — API (explicit, event-driven)                       │
+│                                                                 │
+│  Login / SignUp  →  triggerInit   (action: "init")              │
+│  Payment         →  triggerGetScore (action: "getScore")        │
+│                                                                 │
+│  Every payload includes:   customerSessionId = <CSID>           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**On the BioCatch backend:** when a `getScore` call arrives, the server looks up all SDK data packets that were sent under the same CSID during that session, combines the behavioral signal with the action context, and returns a risk score.
+
+### CSID lifecycle in this app
+
+| Step | Code | What happens |
+|------|------|-------------|
+| User logs in / signs up | `AuthContext.tsx` → `generateUUID()` | A fresh UUID is created as the CSID |
+| SDK is informed | `sdkService.setCustomerSessionId(csid)` | All future SDK packets carry this CSID |
+| API calls carry it | `apiService.ts` → `customerSessionId: csid` | Backend can match SDK data to this call |
+| Stored for the tab | `sessionStorage.setItem('csid', csid)` | Survives page refresh, cleared on tab close |
+| Cleared on logout | `sessionStorage.removeItem('csid')` | Next login generates a new CSID — clean session |
+
+### Background data collection and CORS in development
+
+Once loaded, the SDK silently collects behavioral data and periodically ships it to `wup-4ff4f23f.eu.v2.we-stats.com`. In a local dev environment (`localhost:5173`) this upload is blocked by CORS because BioCatch's collection server only whitelists registered production domains.
+
+This surfaces as a console error:
+```
+Access to XMLHttpRequest at 'https://wup-4ff4f23f.eu.v2.we-stats.com/...'
+has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header
+```
+
+This is expected and harmless in development:
+- `changeContext` and `setCustomerSessionId` still execute correctly
+- The Zapier API calls (`triggerInit`, `triggerGetScore`) are unaffected
+- In a production deployment the client domain is registered with BioCatch, the CORS error disappears, and data collection works end-to-end
+
+---
+
 ## API Reference
 
 **Endpoint:** `POST https://hooks.zapier.com/hooks/catch/1888053/bgwofce/`
@@ -390,6 +444,37 @@ If the API call fails, `user` stays `null`. The Navbar shows no links. Protected
 
 **Sequencing rule:** `getScore` is blocked until `initDone === true`.  
 `initDone` is set only after `triggerInit` / `triggerRegister` returns HTTP 200.
+
+---
+
+## Error Handling
+
+All network calls go through `httpClient.ts`, which is the single point of failure handling for the HTTP layer. UI pages catch errors from the API layer and display them via `StatusBadge`.
+
+### Layer map
+
+| Layer | File | What is caught | What happens |
+|-------|------|---------------|--------------|
+| **Network** | `httpClient.ts` | `fetch` throws (offline, timeout, CORS) | Logged, re-thrown with descriptive message |
+| **HTTP** | `httpClient.ts` | `response.ok === false` (4xx, 5xx) | Response body read, thrown as `Error("HTTP 4xx: ...")` |
+| **API — Login** | `Login.tsx` | `triggerInit` rejects | `setApiStatus({ status: 'error', message })` → red `StatusBadge` |
+| **API — SignUp** | `SignUp.tsx` | `triggerRegister` rejects | Same pattern |
+| **API — Payment** | `Payment.tsx` | `triggerGetScore` rejects | Same pattern |
+| **DB validation** | `userStore.ts` | Wrong password / email not found | Returns `{ ok: false, error }` — no exception thrown |
+| **DB corruption** | `userStore.ts`, `transactionStore.ts` | `JSON.parse` throws on corrupt data | Returns `[]` / empty state, app continues |
+| **SDK unavailable** | `sdkService.ts` | `window.cdApi` not ready | Logs a warning, returns silently — page still loads |
+
+### Request origin
+
+All requests are made **client-side** (browser → external endpoint). There is no backend server in this project.
+
+```
+Browser → Zapier webhook   (BioCatch scoring API — mocked)
+Browser → BioCatch CDN     (SDK script, loaded via <script defer>)
+Browser → BioCatch WUP     (SDK behavioral data upload — blocked by CORS in dev)
+```
+
+This is intentional for the take-home scope. In a production integration the `triggerInit` / `triggerGetScore` calls would originate from a backend server to keep the endpoint and credentials out of the browser.
 
 ---
 
@@ -431,7 +516,9 @@ Open **DevTools → Console** and follow this sequence:
 
 ```
 [App]      Booting SecureBank SPA
-[App→SDK]  changeContext → home_screen  [App→SDK]  changeContext → login_screen [DB]       User authenticated → user@example.com
+[App→SDK]  changeContext → home_screen
+[App→SDK]  changeContext → login_screen
+[DB]       User authenticated → user@example.com
 [Auth]     New CSID generated → <uuid>
 [App→SDK]  setCustomerSessionId → <uuid>
 [API]      init / LOGIN — CSID: <uuid>
@@ -440,8 +527,8 @@ Open **DevTools → Console** and follow this sequence:
     Status:   200 OK
     Response: { attempt: "...", id: "...", status: "success" }
 [Auth]     Session confirmed for user@example.com
-[App→SDK]  changeContext → account_screen     (×2 in dev — React StrictMode)
-[App→SDK]  changeContext → payment_screen     (×2 in dev — React StrictMode)
+[App→SDK]  changeContext → account_screen
+[App→SDK]  changeContext → payment_screen
 [API]      getScore / PAYMENT — CSID: <uuid>
 ▼ [HTTP]   POST https://hooks.zapier.com/hooks/catch/...
     Body:     { customerId, action: "getScore", ... }
@@ -485,6 +572,11 @@ Users and transactions persist across sessions without any server. `bc_users` st
 
 ### 9 — Context API, not Redux
 Three values (`user`, `csid`, `initDone`), one linear flow. Redux adds boilerplate with no architectural benefit here.
+
+### 10 — Dead CSID on API failure is a known, accepted edge case
+If `triggerInit` fails after `startSession` has already run, the CSID is written to `sessionStorage` and sent to the SDK — but `completeAuth` is never called, so `user` stays `null` and `initDone` stays `false`. The user sees an error and stays on the login page. The "dead" CSID remains in `sessionStorage` until the next successful login overwrites it or the tab closes.
+
+This is acceptable because: the SDK has already tagged that CSID as the session; overwriting it on retry with a new CSID would split the behavioral data across two IDs. Keeping the same CSID means if the user retries and succeeds, the SDK data is contiguous under one session. In production, logout explicitly calls `sessionStorage.removeItem('csid')` to ensure a clean state.
 
 ---
 

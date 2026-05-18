@@ -8,7 +8,7 @@ import './index.css';
 
 log.app.info('Booting SecureBank SPA');
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
