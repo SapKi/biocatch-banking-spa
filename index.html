@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      isHybrid=false tells the SDK to activate its web (non-native) branch.
+      This is required by the SDK stub — it reads this metatag on load.
+    -->
+    <meta name="isHybrid" content="false" />
+    <title>SecureBank – BioCatch Demo</title>
+    <!--
+      SDK is loaded here in <head> with defer so window.cdApi is
+      guaranteed to exist before any React component mounts.
+      Global placement means every screen can call cdApi without
+      re-importing or re-initializing the SDK.
+    -->
+    <script
+      src="https://bcdn-4ff4f23f.we-stats.com/scripts/4ff4f23f/4ff4f23f.js"
+      defer
+    ></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
