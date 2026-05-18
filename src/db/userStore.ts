@@ -1,4 +1,5 @@
 import { DB_USERS_KEY, INITIAL_CHECKING_BALANCE, INITIAL_SAVINGS_BALANCE } from '../config';
+import { readStorage } from '../utils/storage';
 import { log } from '../utils/logger';
 
 interface StoredUser {
@@ -10,11 +11,7 @@ interface StoredUser {
 }
 
 function getAll(): StoredUser[] {
-  try {
-    return JSON.parse(localStorage.getItem(DB_USERS_KEY) ?? '[]') as StoredUser[];
-  } catch {
-    return [];
-  }
+  return readStorage<StoredUser[]>(DB_USERS_KEY, []);
 }
 
 function save(users: StoredUser[]): void {
@@ -40,8 +37,7 @@ export function registerUser(email: string, password: string): { ok: true } | { 
 
 export function loginUser(email: string, password: string): { ok: true } | { ok: false; error: string } {
   const user = getAll().find(u => u.email === email);
-  if (!user)                      return { ok: false, error: 'Email not found.' };
-  if (user.password !== password) return { ok: false, error: 'Incorrect password.' };
+  if (!user || user.password !== password) return { ok: false, error: 'Invalid email or password.' };
   log.db.info('User authenticated →', email);
   return { ok: true };
 }
@@ -62,6 +58,11 @@ export function deductFromChecking(email: string, amount: number): void {
     save(users);
     log.db.info('Balance updated → checking:', user.checkingBalance);
   }
+}
+
+export function removeUser(email: string): void {
+  save(getAll().filter(u => u.email !== email));
+  log.db.info('User removed →', email);
 }
 
 export function clearUsers(): void {

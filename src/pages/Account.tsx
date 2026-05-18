@@ -1,27 +1,26 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSDKContext } from '../hooks/useSDKContext';
-import { getTransactions } from '../utils/transactionStore';
+import { getTransactions } from '../db/transactionStore';
 import { getBalances } from '../db/userStore';
+import { formatCurrency } from '../utils/format';
+import { SCREENS, ROUTES } from '../config';
 import styles from './Account.module.css';
 
-function fmt(amount: number, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
-}
+const ACCOUNTS = [
+  { id: 'CHK-001', type: 'Checking Account', description: 'Day-to-day spending', key: 'checking' as const },
+  { id: 'SAV-001', type: 'Savings Account',  description: 'Long-term savings',   key: 'savings'  as const },
+];
 
 export default function Account() {
-  useSDKContext('account_screen');
+  useSDKContext(SCREENS.ACCOUNT);
 
   const { user, csid } = useAuth();
   const email = user!.email;
 
   const transactions          = getTransactions(email);
   const { checking, savings } = getBalances(email);
-
-  const accounts = [
-    { id: 'CHK-001', type: 'Checking Account', description: 'Day-to-day spending', balance: checking },
-    { id: 'SAV-001', type: 'Savings Account',  description: 'Long-term savings',   balance: savings  },
-  ];
+  const balances              = { checking, savings };
 
   return (
     <div className={styles.page}>
@@ -30,15 +29,15 @@ export default function Account() {
           <h2 className={styles.heading}>Account Overview</h2>
           <p className={styles.sub}>Welcome back, {email}</p>
         </div>
-        <Link to="/payment" className={styles.payBtn}>Make a Payment</Link>
+        <Link to={ROUTES.PAYMENT} className={styles.payBtn}>Make a Payment</Link>
       </div>
 
       <div className={styles.accountGrid}>
-        {accounts.map((acc) => (
+        {ACCOUNTS.map((acc) => (
           <div key={acc.id} className={styles.accountCard}>
             <div className={styles.accType}>{acc.type}</div>
             <div className={styles.accDesc}>{acc.description}</div>
-            <div className={styles.accBalance}>{fmt(acc.balance)}</div>
+            <div className={styles.accBalance}>{formatCurrency(balances[acc.key])}</div>
             <div className={styles.accId}>Account {acc.id}</div>
           </div>
         ))}
@@ -59,14 +58,11 @@ export default function Account() {
             </thead>
             <tbody>
               {transactions.map((tx, i) => (
-                <tr key={i} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
+                <tr key={tx.id} className={i % 2 === 0 ? styles.rowEven : styles.rowOdd}>
                   <td className={styles.td}>{tx.date}</td>
                   <td className={styles.td}>{tx.description}</td>
-                  <td
-                    className={`${styles.td} ${styles.tdRight}`}
-                    style={{ color: tx.amount < 0 ? '#c0392b' : '#1a7c3e' }}
-                  >
-                    {fmt(tx.amount)}
+                  <td className={`${styles.td} ${styles.tdRight} ${tx.amount < 0 ? styles.debit : styles.credit}`}>
+                    {formatCurrency(tx.amount)}
                   </td>
                 </tr>
               ))}
@@ -76,9 +72,7 @@ export default function Account() {
       </div>
 
       <details className={styles.debug}>
-        <summary style={{ cursor: 'pointer', color: '#5a6a7e', fontSize: '0.8rem' }}>
-          Session Debug
-        </summary>
+        <summary className={styles.debugSummary}>Session Debug</summary>
         <code className={styles.debugCode}>CSID: {csid}</code>
       </details>
     </div>

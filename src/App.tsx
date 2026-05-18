@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { ROUTES } from './config';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -12,20 +13,20 @@ export default function App() {
   const { user } = useAuth();
 
   return (
-    <div style={{ minHeight: '100vh', background: '#fbf8fe', fontFamily: 'system-ui, sans-serif' }}>
+    <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path={ROUTES.HOME} element={<Home />} />
         <Route
-          path="/login"
-          element={user ? <Navigate to="/account" replace /> : <Login />}
+          path={ROUTES.LOGIN}
+          element={user ? <Navigate to={ROUTES.ACCOUNT} replace /> : <Login />}
         />
         <Route
-          path="/signup"
-          element={user ? <Navigate to="/account" replace /> : <SignUp />}
+          path={ROUTES.SIGNUP}
+          element={user ? <Navigate to={ROUTES.ACCOUNT} replace /> : <SignUp />}
         />
         <Route
-          path="/account"
+          path={ROUTES.ACCOUNT}
           element={
             <ProtectedRoute>
               <Account />
@@ -33,15 +34,15 @@ export default function App() {
           }
         />
         <Route
-          path="/payment"
+          path={ROUTES.PAYMENT}
           element={
             <ProtectedRoute>
               <Payment />
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
       </Routes>
-    </div>
+    </>
   );
 }

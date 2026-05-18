@@ -1,18 +1,26 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSDKContext } from '../hooks/useSDKContext';
 import { triggerRegister } from '../services/apiService';
-import { registerUser } from '../db/userStore';
+import { registerUser, removeUser } from '../db/userStore';
+import { getErrorMessage } from '../utils/error';
+import { SCREENS, ROUTES, REDIRECT_DELAY_MS } from '../config';
 import StatusBadge from '../components/StatusBadge';
 import { ApiStatus } from '../types';
-import styles from './SignUp.module.css';
+import styles from '../styles/form.module.css';
 
 export default function SignUp() {
-  useSDKContext('signup_screen');
+  useSDKContext(SCREENS.SIGNUP);
 
   const { startSession, completeAuth } = useAuth();
   const navigate = useNavigate();
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
 
   const [email, setEmail]                     = useState('');
   const [password, setPassword]               = useState('');
@@ -42,11 +50,15 @@ export default function SignUp() {
     try {
       await triggerRegister(csid, email.trim());
       completeAuth({ email: email.trim(), isNewUser: true });
-      setApiStatus({ status: 'success', message: 'Account created! Redirecting…' });
-      setTimeout(() => navigate('/account'), 800);
+      if (isMounted.current) {
+        setApiStatus({ status: 'success', message: 'Account created! Redirecting…' });
+        setTimeout(() => navigate(ROUTES.ACCOUNT), REDIRECT_DELAY_MS);
+      }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      setApiStatus({ status: 'error', message: `Registration failed: ${message}` });
+      removeUser(email.trim());
+      if (isMounted.current) {
+        setApiStatus({ status: 'error', message: `Registration failed: ${getErrorMessage(err)}` });
+      }
     }
   }
 
@@ -57,40 +69,45 @@ export default function SignUp() {
         <p className={styles.sub}>Open your SecureBank account in seconds.</p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <label className={styles.label}>Email</label>
+          <label htmlFor="email" className={styles.label}>Email</label>
           <input
+            id="email"
             className={styles.input}
             type="email"
-            placeholder=""
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
+            required
           />
 
-          <label className={styles.label}>Password</label>
+          <label htmlFor="password" className={styles.label}>Password</label>
           <div className={styles.pwWrap}>
             <input
+              id="password"
               className={styles.pwInput}
               type={showPw ? 'text' : 'password'}
-              placeholder=""
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
+              minLength={8}
+              required
             />
             <button type="button" className={styles.pwToggle} onClick={() => setShowPw(v => !v)}>
               {showPw ? 'Hide' : 'Show'}
             </button>
           </div>
 
-          <label className={styles.label}>Confirm Password</label>
+          <label htmlFor="confirmPassword" className={styles.label}>Confirm Password</label>
           <div className={styles.pwWrap}>
             <input
+              id="confirmPassword"
               className={styles.pwInput}
               type={showConfirm ? 'text' : 'password'}
-              placeholder=""
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
+              minLength={8}
+              required
             />
             <button type="button" className={styles.pwToggle} onClick={() => setShowConfirm(v => !v)}>
               {showConfirm ? 'Hide' : 'Show'}
@@ -100,10 +117,6 @@ export default function SignUp() {
           <button
             type="submit"
             className={styles.btn}
-            style={{
-              opacity: apiStatus.status === 'loading' ? 0.7 : 1,
-              cursor:  apiStatus.status === 'loading' ? 'not-allowed' : 'pointer',
-            }}
             disabled={apiStatus.status === 'loading'}
           >
             {apiStatus.status === 'loading' ? 'Creating account…' : 'Create Account'}
@@ -114,7 +127,7 @@ export default function SignUp() {
 
         <p className={styles.footer}>
           Already have an account?{' '}
-          <Link to="/login" className={styles.link}>Sign in</Link>
+          <Link to={ROUTES.LOGIN} className={styles.link}>Sign in</Link>
         </p>
       </div>
     </div>

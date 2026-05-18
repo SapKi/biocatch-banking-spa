@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { generateUUID } from '../utils/uuid';
-import { setCustomerSessionId } from '../services/sdkService';
+import { setCustomerSessionId, setCustomerBrand } from '../services/sdkService';
+import { API_BRAND } from '../config';
 import { log } from '../utils/logger';
 import { User, AuthContextValue } from '../types';
 
@@ -17,6 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.setItem('csid', newCsid);
     setCsid(newCsid);
     setCustomerSessionId(newCsid);
+    setCustomerBrand(API_BRAND);
     return newCsid;
   }, []);
 

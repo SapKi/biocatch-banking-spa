@@ -1,3 +1,37 @@
+:root {
+  /* Brand palette */
+  --color-primary:        #9b6dbf;
+  --color-primary-dark:   #7b5ca8;
+  --color-primary-deeper: #6a3fa0;
+  --color-primary-light:  #f0eafc;
+  --color-primary-border: #d5bff5;
+
+  /* Text */
+  --color-text:           #4a3660;
+  --color-text-muted:     #7a6490;
+
+  /* Surfaces */
+  --color-bg:             #fbf8fe;
+  --color-surface:        #ffffff;
+  --color-surface-alt:    #f7f3fc;
+
+  /* Borders */
+  --color-border:         #e8daf5;
+
+  /* Status */
+  --color-success:        #1a7c3e;
+  --color-success-bg:     #e6f9ec;
+  --color-success-border: #74d99f;
+  --color-error:          #c0392b;
+  --color-error-bg:       #fff0f0;
+  --color-error-border:   #f1a9a9;
+
+  /* Layout */
+  --navbar-height: 60px;
+  --card-radius:   12px;
+  --input-radius:  6px;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -5,8 +39,8 @@
 body {
   margin: 0;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  background: #fbf8fe;
-  color: #4a3660;
+  background: var(--color-bg);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
 }
 

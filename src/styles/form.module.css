@@ -1,15 +1,17 @@
+/* Shared form page layout — composed into Login, SignUp, Payment */
+
 .page {
   display: flex;
   justify-content: center;
   align-items: flex-start;
   padding: 4rem 1rem;
-  min-height: calc(100vh - 60px);
-  background: #fbf8fe;
+  min-height: calc(100vh - var(--navbar-height));
+  background: var(--color-bg);
 }
 
 .card {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--color-surface);
+  border-radius: var(--card-radius);
   padding: 2.5rem 2rem;
   width: 100%;
   max-width: 420px;
@@ -17,12 +19,12 @@
 }
 
 .heading {
-  color: #4a3660;
+  color: var(--color-text);
   margin-bottom: 0.4rem;
 }
 
 .sub {
-  color: #7a6490;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
   margin-bottom: 1.8rem;
 }
@@ -34,37 +36,36 @@
 }
 
 .label {
-  color: #4a3660;
+  color: var(--color-text);
   font-size: 0.875rem;
   font-weight: 600;
 }
 
 .input {
   padding: 0.7rem 0.9rem;
-  border: 1px solid #e8daf5;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--input-radius);
   font-size: 1rem;
   margin-bottom: 0.6rem;
   outline: none;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .input:focus {
-  border-color: #9b6dbf;
+  border-color: var(--color-primary);
 }
 
 .pwWrap {
   display: flex;
   align-items: center;
-  border: 1px solid #e8daf5;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--input-radius);
   margin-bottom: 0.6rem;
   overflow: hidden;
 }
 
 .pwWrap:focus-within {
-  border-color: #9b6dbf;
+  border-color: var(--color-primary);
 }
 
 .pwInput {
@@ -79,7 +80,7 @@
   padding: 0 0.9rem;
   background: none;
   border: none;
-  color: #9b6dbf;
+  color: var(--color-primary);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -89,30 +90,29 @@
 .btn {
   margin-top: 0.5rem;
   padding: 0.85rem;
-  background: #9b6dbf;
+  background: var(--color-primary);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--input-radius);
   font-size: 1rem;
   font-weight: 600;
   width: 100%;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .footer {
   margin-top: 1.5rem;
   text-align: center;
   font-size: 0.875rem;
-  color: #7a6490;
+  color: var(--color-text-muted);
 }
 
 .link {
-  color: #9b6dbf;
+  color: var(--color-primary);
   font-weight: 600;
-}
-
-.linkBold {
-  color: #6a3fa0;
-  font-weight: 900;
-  font-size: 1.05rem;
-  text-decoration: underline;
 }

@@ -1,79 +1,18 @@
-.page {
-  display: flex;
-  justify-content: center;
-  padding: 4rem 1rem;
-  min-height: calc(100vh - 60px);
-  background: #fbf8fe;
-}
+/* Payment-specific additions only — base form styles come from src/styles/form.module.css */
 
 .card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 2.5rem 2rem;
-  width: 100%;
   max-width: 460px;
-  box-shadow: 0 4px 20px rgba(123, 92, 168, 0.1);
   height: fit-content;
-}
-
-.heading {
-  color: #4a3660;
-  margin-bottom: 0.4rem;
-}
-
-.sub {
-  color: #7a6490;
-  font-size: 0.9rem;
-  margin-bottom: 1.8rem;
 }
 
 .warning {
   background: #fff8e1;
   border: 1px solid #f9d423;
-  border-radius: 6px;
+  border-radius: var(--input-radius);
   padding: 0.75rem 1rem;
   color: #7c6200;
   font-size: 0.85rem;
   margin-bottom: 1.2rem;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.label {
-  color: #4a3660;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.input {
-  padding: 0.7rem 0.9rem;
-  border: 1px solid #e8daf5;
-  border-radius: 6px;
-  font-size: 1rem;
-  margin-bottom: 0.6rem;
-  outline: none;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.input:focus {
-  border-color: #9b6dbf;
-}
-
-.btn {
-  margin-top: 0.5rem;
-  padding: 0.85rem;
-  background: #9b6dbf;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  width: 100%;
 }
 
 .actions {
@@ -85,10 +24,10 @@
 
 .btnSecondary {
   padding: 0.85rem;
-  background: #9b6dbf;
+  background: var(--color-primary);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--input-radius);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -98,9 +37,9 @@
 .btnGhost {
   padding: 0.85rem;
   background: transparent;
-  color: #9b6dbf;
-  border: 1px solid #9b6dbf;
-  border-radius: 6px;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--input-radius);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;

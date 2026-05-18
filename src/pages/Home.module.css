@@ -11,20 +11,20 @@
 
 .title {
   font-size: 2.5rem;
-  color: #4a3660;
+  color: var(--color-text);
   margin-bottom: 1rem;
 }
 
 .subtitle {
   font-size: 1.15rem;
-  color: #7a6490;
+  color: var(--color-text-muted);
   margin-bottom: 2rem;
 }
 
 .cta {
   display: inline-block;
   padding: 0.85rem 2.2rem;
-  background: #9b6dbf;
+  background: var(--color-primary);
   color: #fff;
   border-radius: 8px;
   text-decoration: none;
@@ -39,8 +39,8 @@
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #e8daf5;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 1.5rem;
   text-align: center;
@@ -53,12 +53,12 @@
 }
 
 .cardTitle {
-  color: #4a3660;
+  color: var(--color-text);
   margin-bottom: 0.5rem;
 }
 
 .cardDesc {
-  color: #7a6490;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
   line-height: 1.5;
 }

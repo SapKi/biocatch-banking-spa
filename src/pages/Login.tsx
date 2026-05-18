@@ -1,24 +1,31 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSDKContext } from '../hooks/useSDKContext';
 import { triggerInit } from '../services/apiService';
 import { loginUser } from '../db/userStore';
+import { getErrorMessage } from '../utils/error';
+import { SCREENS, ROUTES, REDIRECT_DELAY_MS } from '../config';
 import StatusBadge from '../components/StatusBadge';
 import { ApiStatus } from '../types';
-import styles from './Login.module.css';
+import styles from '../styles/form.module.css';
 
 export default function Login() {
-  useSDKContext('login_screen');
+  useSDKContext(SCREENS.LOGIN);
 
   const { startSession, completeAuth } = useAuth();
   const navigate = useNavigate();
+  const isMounted = useRef(true);
 
-  const [email, setEmail]               = useState('');
-  const [password, setPassword]         = useState('');
-  const [showPw, setShowPw]             = useState(false);
-  const [userNotFound, setUserNotFound] = useState(false);
-  const [apiStatus, setApiStatus]       = useState<ApiStatus>({ status: 'idle', message: '' });
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
+
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
+  const [showPw, setShowPw]       = useState(false);
+  const [apiStatus, setApiStatus] = useState<ApiStatus>({ status: 'idle', message: '' });
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,23 +33,23 @@ export default function Login() {
 
     const result = loginUser(email.trim(), password);
     if (!result.ok) {
-      setUserNotFound(result.error === 'Email not found.');
       setApiStatus({ status: 'error', message: result.error });
       return;
     }
-    setUserNotFound(false);
 
     const csid = startSession();
     setApiStatus({ status: 'loading', message: 'Authenticating…' });
 
     try {
       await triggerInit(csid, email.trim());
+      if (!isMounted.current) return;
       completeAuth({ email: email.trim(), isNewUser: false });
       setApiStatus({ status: 'success', message: 'Login successful! Redirecting…' });
-      setTimeout(() => navigate('/account'), 800);
+      setTimeout(() => navigate(ROUTES.ACCOUNT), REDIRECT_DELAY_MS);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      setApiStatus({ status: 'error', message: `Login failed: ${message}` });
+      if (isMounted.current) {
+        setApiStatus({ status: 'error', message: `Login failed: ${getErrorMessage(err)}` });
+      }
     }
   }
 
@@ -53,25 +60,27 @@ export default function Login() {
         <p className={styles.sub}>Enter your credentials to access your account.</p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <label className={styles.label}>Email</label>
+          <label htmlFor="email" className={styles.label}>Email</label>
           <input
+            id="email"
             className={styles.input}
             type="email"
-            placeholder=""
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
+            required
           />
 
-          <label className={styles.label}>Password</label>
+          <label htmlFor="password" className={styles.label}>Password</label>
           <div className={styles.pwWrap}>
             <input
+              id="password"
               className={styles.pwInput}
               type={showPw ? 'text' : 'password'}
-              placeholder=""
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
+              required
             />
             <button type="button" className={styles.pwToggle} onClick={() => setShowPw(v => !v)}>
               {showPw ? 'Hide' : 'Show'}
@@ -81,10 +90,6 @@ export default function Login() {
           <button
             type="submit"
             className={styles.btn}
-            style={{
-              opacity: apiStatus.status === 'loading' ? 0.7 : 1,
-              cursor:  apiStatus.status === 'loading' ? 'not-allowed' : 'pointer',
-            }}
             disabled={apiStatus.status === 'loading'}
           >
             {apiStatus.status === 'loading' ? 'Signing in…' : 'Sign In'}
@@ -95,12 +100,7 @@ export default function Login() {
 
         <p className={styles.footer}>
           Don&apos;t have an account?{' '}
-          <Link
-            to="/signup"
-            className={userNotFound ? styles.linkBold : styles.link}
-          >
-            Create one
-          </Link>
+          <Link to={ROUTES.SIGNUP} className={styles.link}>Create one</Link>
         </p>
       </div>
     </div>

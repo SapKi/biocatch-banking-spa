@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { log } from './utils/logger';
-import App from './App.jsx';
+import App from './App';
 import './index.css';
 
 log.app.info('Booting SecureBank SPA');

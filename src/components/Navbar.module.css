@@ -3,8 +3,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  height: 60px;
-  background: #7b5ca8;
+  height: var(--navbar-height);
+  background: var(--color-primary-dark);
   color: #fff;
   box-shadow: 0 2px 8px rgba(123, 92, 168, 0.25);
 }
@@ -24,19 +24,19 @@
 }
 
 .link {
-  color: #e8daf5;
+  color: var(--color-border);
   text-decoration: none;
   font-size: 0.95rem;
 }
 
 .userLabel {
-  color: #e8daf5;
+  color: var(--color-border);
   font-size: 0.9rem;
 }
 
 .signUpBtn {
   padding: 0.35rem 0.9rem;
-  background: #9b6dbf;
+  background: var(--color-primary);
   color: #fff;
   border-radius: 4px;
   text-decoration: none;
@@ -46,8 +46,8 @@
 
 .logoutBtn {
   background: transparent;
-  border: 1px solid #e8daf5;
-  color: #e8daf5;
+  border: 1px solid var(--color-border);
+  color: var(--color-border);
   padding: 0.35rem 0.9rem;
   border-radius: 4px;
   cursor: pointer;
