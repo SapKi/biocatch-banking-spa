@@ -307,8 +307,7 @@ API_SOLUTION             // 'ATO'
 API_CUSTOMER_ID          // 'dummy'
 DB_USERS_KEY             // 'bc_users'
 DB_TRANSACTIONS_PREFIX   // 'bc_transactions_'
-INITIAL_CHECKING_BALANCE // 5000.00
-INITIAL_SAVINGS_BALANCE  // 12500.00
+INITIAL_CHECKING_BALANCE // 24750.00
 ROUTES                   // { HOME, LOGIN, SIGNUP, ACCOUNT, PAYMENT }
 SCREENS                  // { LOGIN, SIGNUP, ACCOUNT, PAYMENT }
 REDIRECT_DELAY_MS        // 800
@@ -599,7 +598,7 @@ This is acceptable because: the SDK has already tagged that CSID as the session;
 
 1. Open app → Home → DevTools Console: `changeContext → home_screen`
 2. Click "Sign Up" → fill email + password → Create Account → CSID generated, `init` fires
-3. Redirect to Account → $5,000 checking, $12,500 savings, empty transaction list
+3. Redirect to Account → $24,750 checking balance, empty transaction list
 4. Click "Make a Payment" → fill form → Confirm → `getScore` fires + balance deducted
 5. Click "View Transactions" → payment appears at top of list
 6. Logout → login again with same credentials → balance and transactions restored from DB

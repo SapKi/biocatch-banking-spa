@@ -2,25 +2,18 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSDKContext } from '../hooks/useSDKContext';
 import { getTransactions } from '../db/transactionStore';
-import { getBalances } from '../db/userStore';
+import { getBalance } from '../db/userStore';
 import { formatCurrency } from '../utils/format';
 import { SCREENS, ROUTES } from '../config';
 import styles from './Account.module.css';
-
-const ACCOUNTS = [
-  { id: 'CHK-001', type: 'Checking Account', description: 'Day-to-day spending', key: 'checking' as const },
-  { id: 'SAV-001', type: 'Savings Account',  description: 'Long-term savings',   key: 'savings'  as const },
-];
 
 export default function Account() {
   useSDKContext(SCREENS.ACCOUNT);
 
   const { user, csid } = useAuth();
-  const email = user!.email;
-
-  const transactions          = getTransactions(email);
-  const { checking, savings } = getBalances(email);
-  const balances              = { checking, savings };
+  const email          = user!.email;
+  const balance        = getBalance(email);
+  const transactions   = getTransactions(email);
 
   return (
     <div className={styles.page}>
@@ -32,15 +25,11 @@ export default function Account() {
         <Link to={ROUTES.PAYMENT} className={styles.payBtn}>Make a Payment</Link>
       </div>
 
-      <div className={styles.accountGrid}>
-        {ACCOUNTS.map((acc) => (
-          <div key={acc.id} className={styles.accountCard}>
-            <div className={styles.accType}>{acc.type}</div>
-            <div className={styles.accDesc}>{acc.description}</div>
-            <div className={styles.accBalance}>{formatCurrency(balances[acc.key])}</div>
-            <div className={styles.accId}>Account {acc.id}</div>
-          </div>
-        ))}
+      <div className={styles.accountCard}>
+        <div className={styles.accType}>Checking Account</div>
+        <div className={styles.accDesc}>Day-to-day spending</div>
+        <div className={styles.accBalance}>{formatCurrency(balance)}</div>
+        <div className={styles.accId}>Account CHK-001</div>
       </div>
 
       <div className={styles.section}>

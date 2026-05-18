@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSDKContext } from '../hooks/useSDKContext';
 import { triggerGetScore } from '../services/apiService';
 import { addTransaction } from '../db/transactionStore';
-import { deductFromChecking, getBalances } from '../db/userStore';
+import { deductFromChecking, getBalance } from '../db/userStore';
 import { getErrorMessage } from '../utils/error';
 import { formatCurrency } from '../utils/format';
 import { SCREENS, ROUTES } from '../config';
@@ -48,7 +48,7 @@ export default function Payment() {
 
     const paid  = parseFloat(amount);
     const email = user.email;
-    const { checking } = getBalances(email);
+    const checking = getBalance(email);
 
     if (paid > checking) {
       setApiStatus({ status: 'error', message: `Insufficient funds. Available balance: ${formatCurrency(checking)}` });

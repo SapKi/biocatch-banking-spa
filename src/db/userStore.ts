@@ -1,4 +1,4 @@
-import { DB_USERS_KEY, INITIAL_CHECKING_BALANCE, INITIAL_SAVINGS_BALANCE } from '../config';
+import { DB_USERS_KEY, INITIAL_CHECKING_BALANCE } from '../config';
 import { readStorage } from '../utils/storage';
 import { log } from '../utils/logger';
 
@@ -6,7 +6,6 @@ interface StoredUser {
   email: string;
   password: string;
   checkingBalance: number;
-  savingsBalance: number;
   createdAt: string;
 }
 
@@ -27,7 +26,6 @@ export function registerUser(email: string, password: string): { ok: true } | { 
     email,
     password,
     checkingBalance: INITIAL_CHECKING_BALANCE,
-    savingsBalance:  INITIAL_SAVINGS_BALANCE,
     createdAt: new Date().toISOString(),
   });
   save(users);
@@ -42,12 +40,8 @@ export function loginUser(email: string, password: string): { ok: true } | { ok:
   return { ok: true };
 }
 
-export function getBalances(email: string): { checking: number; savings: number } {
-  const user = getAll().find(u => u.email === email);
-  return {
-    checking: user?.checkingBalance ?? 0,
-    savings:  user?.savingsBalance  ?? 0,
-  };
+export function getBalance(email: string): number {
+  return getAll().find(u => u.email === email)?.checkingBalance ?? 0;
 }
 
 export function deductFromChecking(email: string, amount: number): void {

@@ -9,8 +9,7 @@ export const DB_USERS_KEY           = 'bc_users';
 export const DB_TRANSACTIONS_PREFIX = 'bc_transactions_';
 
 // ─── Business defaults ───────────────────────────────────────────────────────
-export const INITIAL_CHECKING_BALANCE = 5_000.00;
-export const INITIAL_SAVINGS_BALANCE  = 12_500.00;
+export const INITIAL_CHECKING_BALANCE = 24_750.00;
 
 // ─── Routing ─────────────────────────────────────────────────────────────────
 export const ROUTES = {
