@@ -9,9 +9,37 @@ A React + TypeScript SPA that simulates a banking user journey and integrates th
 ## How to Run — Step by Step
 
 > No prior experience needed. Follow each step in order.
+Short steps:
+1. Install Node.js
+Go to nodejs.org → download LTS → install with all defaults.
+
+2. Download the project
+Go to the GitHub repo → green Code button → Download ZIP → unzip it.
+
+3. Open a terminal in the project folder
+
+Windows: open the unzipped folder → click the address bar → type cmd → Enter
+Mac: right-click the folder → "New Terminal at Folder"
+4. Install dependencies (one time only)
+
+
+npm install
+5. Create the .env file
+In the project folder, create a file named .env and put this inside:
+
+
+VITE_API_ENDPOINT=https://hooks.zapier.com/hooks/catch/1888053/bgwofce/
+6. Start the app
+
+
+npm run dev
+7. Open in Chrome
+
+
+http://localhost:5173
 
 ---
-
+Detailed Steps:
 ### Step 1 — Install Node.js
 
 Node.js is the engine that runs the development tools. The app itself runs in the browser — Node.js is only needed to start the local server.
