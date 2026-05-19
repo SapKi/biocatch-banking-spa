@@ -6,49 +6,128 @@ A React + TypeScript SPA that simulates a banking user journey and integrates th
 
 ---
 
-## Prerequisites
+## How to Run — Step by Step
 
-> **Why Node.js?**
-> This project is a pure browser SPA — the final output (`/dist`) is static HTML/CSS/JS with zero server requirement.
-> Node.js is needed **only during development** to run the build toolchain: Vite (dev server + bundler), npm (package manager), and the TypeScript compiler.
-> Once built, the output can be served by any static host (Nginx, Netlify, GitHub Pages) without Node.js.
+> No prior experience needed. Follow each step in order.
 
-| Tool | Minimum version | Purpose | How to install |
-|------|----------------|---------|----------------|
-| **Node.js** | v18.0.0 | Runs Vite dev server and TypeScript compiler | [nodejs.org/en/download](https://nodejs.org/en/download) |
-| **npm** | v9.0.0 | Downloads and manages packages | Bundled with Node.js |
-| **Git** | any recent | Clones the repository | [git-scm.com/downloads](https://git-scm.com/downloads) |
+---
 
-```bash
-node -v   # expected: v18.x.x or higher
-npm -v    # expected: 9.x.x or higher
+### Step 1 — Install Node.js
+
+Node.js is the engine that runs the development tools. The app itself runs in the browser — Node.js is only needed to start the local server.
+
+1. Go to **[nodejs.org/en/download](https://nodejs.org/en/download)**
+2. Download the **LTS** version (the button labelled "LTS" — not "Current")
+3. Run the installer and click through with all default options
+4. When it finishes, open a terminal:
+   - **Windows:** press `Win + R`, type `cmd`, press Enter
+   - **Mac:** press `Cmd + Space`, type `Terminal`, press Enter
+5. Type this and press Enter to confirm it worked:
+   ```
+   node -v
+   ```
+   You should see something like `v20.x.x`. If you do, Node.js is installed.
+
+---
+
+### Step 2 — Download the project
+
+You have two options:
+
+**Option A — Download as a ZIP (no Git needed)**
+1. Go to the GitHub page: **https://github.com/SapKi/biocatch-banking-spa**
+2. Click the green **Code** button → **Download ZIP**
+3. Unzip the downloaded file somewhere on your computer (e.g. your Desktop)
+
+**Option B — Clone with Git**
+```
+git clone https://github.com/SapKi/biocatch-banking-spa.git
 ```
 
 ---
 
-## Setup & Run
+### Step 3 — Open the project folder in the terminal
 
-```bash
-# 1. Clone
-git clone https://github.com/SapKi/biocatch-banking-spa.git
-cd biocatch-banking-spa
+In your terminal, navigate into the project folder.
 
-# 2. Install
+```
+cd Desktop/biocatch-banking-spa
+```
+
+> **Tip:** If you're not sure where you unzipped it, drag the folder into the terminal window — it will paste the full path for you.
+
+Confirm you're in the right place by running:
+```
+ls
+```
+You should see files like `package.json`, `index.html`, `src/`, etc.
+
+---
+
+### Step 4 — Install dependencies
+
+The project uses open-source libraries listed in `package.json`. This command downloads all of them:
+
+```
 npm install
+```
 
-# 3. Start
+This takes 30–60 seconds. You'll see a progress bar. When it's done the cursor will return. You only need to do this **once**.
+
+---
+
+### Step 5 — Create the environment file
+
+The app needs one configuration file that is not included in the repository (it contains a live URL).
+
+1. In the project folder, create a file called **`.env`**
+2. Open it with any text editor (Notepad is fine)
+3. Paste this single line inside and save:
+
+```
+VITE_API_ENDPOINT=https://hooks.zapier.com/hooks/catch/1888053/bgwofce/
+```
+
+---
+
+### Step 6 — Start the app
+
+```
 npm run dev
-# → http://localhost:5173
 ```
 
-### All commands
+You will see output like:
 
-```bash
-npm run dev      # development server on http://localhost:5173
-npm run build    # TypeScript check + production bundle → /dist
-npm run preview  # serve /dist locally
-npm run lint     # ESLint across all .ts and .tsx files
 ```
+  VITE v8.x.x  ready in 200ms
+
+  ➜  Local:   http://localhost:5173/
+```
+
+---
+
+### Step 7 — Open the app in your browser
+
+Open **Chrome** (recommended — DevTools work best here) and go to:
+
+```
+http://localhost:5173
+```
+
+The SecureBank app will load. To stop the server at any time, go back to the terminal and press `Ctrl + C`.
+
+---
+
+### Every time after that
+
+Steps 1–5 are one-time setup. Next time you want to run the project:
+
+1. Open your terminal
+2. Navigate to the project folder: `cd Desktop/biocatch-banking-spa`
+3. Run: `npm run dev`
+4. Open `http://localhost:5173` in Chrome
+
+---
 
 ### Troubleshooting
 
