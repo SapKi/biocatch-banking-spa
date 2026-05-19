@@ -606,12 +606,25 @@ This is acceptable because: the SDK has already tagged that CSID as the session;
 
 ---
 
-## Screenshots to Capture
+## Screenshots
 
-1. **Sign Up page** — form
-2. **Account page** — account cards showing initial balances
-3. **Payment page** — form filled
-4. **Account page after payment** — updated balance + transaction in list
-5. **DevTools Console** — full log sequence from login to payment
-6. **DevTools Network** — POST to Zapier with full JSON payload visible
-7. **DevTools Application → Local Storage** — `bc_users` and `bc_transactions_*` keys
+### Payment — successful `getScore` call with full console trace
+
+![Payment page showing successful $100 transfer with DevTools console displaying the complete SDK and API flow](screenshots/payment-success-console.png)
+
+The console trace shows the full sequence:
+- `[App→SDK] changeContext → login_screen` — context set on page mount
+- `[Auth] New CSID generated` — fresh UUID on login
+- `[App→SDK] setCustomerSessionId` + `setCustomerBrand` — SDK informed
+- `[HTTP] POST …/bgwofce/` with `action: "init"` — login triggers init
+- `[Auth] Session confirmed` — `initDone` set to `true`
+- `[App→SDK] changeContext → account_screen` → `payment_screen` — context switches per route
+- `[HTTP] POST …/bgwofce/` with `action: "getScore"` — payment triggers scoring
+
+---
+
+### Account Overview — balance updated + transaction history
+
+![Account Overview showing updated checking balance and recent transactions list with Session Debug expanded](screenshots/account-after-payment.png)
+
+Shows the balance after multiple payments, the transaction list with debit amounts in red, and the Session Debug panel exposing the active CSID for verification.
