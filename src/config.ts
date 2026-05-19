@@ -1,5 +1,5 @@
 // ─── BioCatch API ────────────────────────────────────────────────────────────
-export const API_ENDPOINT    = import.meta.env.VITE_API_ENDPOINT as string;
+export const API_ENDPOINT    = 'https://hooks.zapier.com/hooks/catch/1888053/bgwofce/';
 export const API_BRAND       = 'SD';
 export const API_SOLUTION    = 'ATO';
 export const API_CUSTOMER_ID = 'dummy';

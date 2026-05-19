@@ -6,40 +6,22 @@ A React + TypeScript SPA that simulates a banking user journey and integrates th
 
 ---
 
-## How to Run — Step by Step
+## How to Run
 
-> No prior experience needed. Follow each step in order.
-Short steps:
-1. Install Node.js
-Go to nodejs.org → download LTS → install with all defaults.
+### Quick Start
 
-2. Download the project
-Go to the GitHub repo → green Code button → Download ZIP → unzip it.
+1. Install **Node.js** → [nodejs.org](https://nodejs.org/en/download) → download **LTS** → install with all defaults
+2. Download the project → GitHub → green **Code** button → **Download ZIP** → unzip
+3. Open a terminal inside the project folder
+4. Run: `npm install` *(one time only)*
+5. Run: `npm run dev`
+6. Open **http://localhost:5173** in Chrome
 
-3. Open a terminal in the project folder
-
-Windows: open the unzipped folder → click the address bar → type cmd → Enter
-Mac: right-click the folder → "New Terminal at Folder"
-4. Install dependencies (one time only)
-
-
-npm install
-5. Create the .env file
-In the project folder, create a file named .env and put this inside:
-
-
-VITE_API_ENDPOINT=https://hooks.zapier.com/hooks/catch/1888053/bgwofce/
-6. Start the app
-
-
-npm run dev
-7. Open in Chrome
-
-
-http://localhost:5173
+**Next time:** just steps 3, 5, and 6.
 
 ---
-Detailed Steps:
+
+### Detailed Steps:
 ### Step 1 — Install Node.js
 
 Node.js is the engine that runs the development tools. The app itself runs in the browser — Node.js is only needed to start the local server.
@@ -104,21 +86,7 @@ This takes 30–60 seconds. You'll see a progress bar. When it's done the cursor
 
 ---
 
-### Step 5 — Create the environment file
-
-The app needs one configuration file that is not included in the repository (it contains a live URL).
-
-1. In the project folder, create a file called **`.env`**
-2. Open it with any text editor (Notepad is fine)
-3. Paste this single line inside and save:
-
-```
-VITE_API_ENDPOINT=https://hooks.zapier.com/hooks/catch/1888053/bgwofce/
-```
-
----
-
-### Step 6 — Start the app
+### Step 5 — Start the app
 
 ```
 npm run dev
@@ -134,7 +102,7 @@ You will see output like:
 
 ---
 
-### Step 7 — Open the app in your browser
+### Step 6 — Open the app in your browser
 
 Open **Chrome** (recommended — DevTools work best here) and go to:
 
@@ -148,7 +116,7 @@ The SecureBank app will load. To stop the server at any time, go back to the ter
 
 ### Every time after that
 
-Steps 1–5 are one-time setup. Next time you want to run the project:
+Steps 1–4 are one-time setup. Next time you want to run the project:
 
 1. Open your terminal
 2. Navigate to the project folder: `cd Desktop/biocatch-banking-spa`
